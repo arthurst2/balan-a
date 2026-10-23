@@ -151,7 +151,13 @@ async function exportXlsx(){
   if(banco){for(let c=1;c<=6;c++)put(r,c,'',{bg:c<=2?'FFFF00':'D9D9D9'});r++}});
  const buf=await wb.xlsx.writeBuffer();
  const nome='escala-'+UI.data+'.xlsx';if(dl){try{await dl.save({filename:nome,data:buf})}catch(err){if(err&&err.code!='declined')alert('Não foi possível salvar: '+(err.message||err.code))}return}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=nome;a.click()}
-function girar(){const i=S.frota.findIndex(f=>f.tipo=='Betoneira');const n=S.frota.filter(f=>f.tipo=='Betoneira').length;const[x]=S.frota.splice(i,1);S.frota.splice(i+n-1,0,x);save();render()}
+function girar(){
+ const idx=S.frota.map((f,i)=>f.tipo=='Betoneira'?i:-1).filter(i=>i>=0),L=idx.map(i=>S.frota[i]),k=L.findIndex(f=>!f.manut);if(k<0)return;
+ const[x]=L.splice(k,1);L.splice(L.map(f=>f.manut).lastIndexOf(false)+1,0,x);
+ idx.forEach((p,j)=>S.frota[p]=L[j]);
+ const at=L.filter(f=>!f.manut),hs=at.map(f=>f.entrada).sort((a,b)=>t2m(a)-t2m(b));at.forEach((f,j)=>f.entrada=hs[j]);
+ save();render()}
+function girarOld(){const i=S.frota.findIndex(f=>f.tipo=='Betoneira');const n=S.frota.filter(f=>f.tipo=='Betoneira').length;const[x]=S.frota.splice(i,1);S.frota.splice(i+n-1,0,x);save();render()}
 function addVeic(tipo){S.frota.push({id:uid(),mot:'',placa:'',entrada:'06:00',cod:'',tipo,manut:false,cor:COR[S.frota.length%12]});save();render()}
 async function backup(){const dl=window.claude?await claude.use('downloads'):null;if(dl){try{await dl.save({filename:'usina-backup-'+dstr(new Date())+'.json',data:JSON.stringify(S)})}catch(_){}return}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='usina-backup-'+dstr(new Date())+'.json';a.click()}
 function restaurar(f){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.frota){S=d;save();render()}}catch(_){alert('Arquivo inválido')}};r.readAsText(f)}
@@ -233,7 +239,7 @@ function eq(){
  const t=tipo=>`<table><tr><th></th><th>Ordem</th><th>${tipo=='Bomba'?'Motorista bomba / ajudante':'Motorista betoneira'}</th><th>Placa</th><th>Entrada</th><th>Código</th><th>Cor</th><th>Manutenção</th><th></th></tr>`+
   S.frota.filter(f=>f.tipo==tipo).map((f,i)=>`<tr draggable="true" data-d="${f.id}" style="background:${f.manut?'#FF9999':'inherit'}"><td class="c" style="cursor:grab">≡</td><td class="c">${f.manut?'—':i+1}</td><td>${inp('frota',f.id,'mot',f.mot)}</td><td>${inp('frota',f.id,'placa',f.placa)}</td><td>${inp('frota',f.id,'entrada',f.entrada,'time')}</td><td>${inp('frota',f.id,'cod',f.cod)}</td><td class="c"><input type="color" data-k="frota" data-i="${f.id}" data-f="cor" value="${f.cor}" style="width:40px;padding:0"></td><td class="c"><input type="checkbox" data-k="frota" data-i="${f.id}" data-f="manut" ${f.manut?'checked':''}></td><td class="x" onclick="del('frota','${f.id}')">×</td></tr>`).join('')+'</table>';
  return`<div style="margin-bottom:6px"><button onclick="exportXlsx()">📊 Baixar escala em Excel</button> <span class="hint">Mesmo layout da sua planilha de escala, com a ordem e os horários atuais.</span></div><div class="sec" style="margin-top:0">BOMBAS</div>${t('Bomba')}<button onclick="addVeic('Bomba')">+ Bomba</button>
- <div class="sec">BETONEIRAS — arraste a linha para mudar a ordem</div>${t('Betoneira')}<button onclick="addVeic('Betoneira')">+ Betoneira</button> <button onclick="girar()">Girar rodízio (1º vai para o fim)</button>
+ <div class="sec">BETONEIRAS — arraste a linha para mudar a ordem</div>${t('Betoneira')}<button onclick="addVeic('Betoneira')">+ Betoneira</button> <button onclick="girar()">Girar rodízio (o 1º vai para o fim e os horários acompanham)</button>
  <div class="sec">PAZEIRO / PROGRAMAÇÃO / FÉRIAS / BANCO DE HORA</div>
  <table><tr><th>Função</th><th>Nome</th><th>Horário</th><th></th></tr>${S.staff.map(s=>`<tr><td>${inp('staff',s.id,'cat',s.cat)}</td><td>${inp('staff',s.id,'nome',s.nome)}</td><td>${inp('staff',s.id,'hora',s.hora,'time')}</td><td class="x" onclick="del('staff','${s.id}')">×</td></tr>`).join('')}</table>
  <button onclick="S.staff.push({id:uid(),cat:'',nome:'',hora:''});save();render()">+ Pessoa</button>
