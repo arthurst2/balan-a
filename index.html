@@ -63,6 +63,7 @@ const t2m=t=>{const[a,b]=(t||'0:0').split(':');return(+a||0)*60+(+b||0)};
 const dstr=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const pd=s=>{const[y,m,d]=s.split('-');return new Date(+y,m-1,+d)};
 const e=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const brl=v=>(+v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}),tv=o=>(+o.m3||0)*(+o.vm3||0)+(o.bomba?+o.taxa||0:0);
 const uid=()=>Math.random().toString(36).slice(2,9);
 const COR=['#FF0000','#00B0F0','#7030A0','#92D050','#ED7D31','#FFC000','#0070C0','#FF66CC','#00B050','#A5A5A5','#C55A11','#2F5597'];
 const tc=c=>{const n=parseInt(c.slice(1),16),l=.299*(n>>16)+.587*(n>>8&255)+.114*(n&255);return l>150?'#000':'#fff'};
@@ -78,7 +79,7 @@ let S;
 try{S=JSON.parse(localStorage.getItem(K))}catch(_){}
 if(!S||!S.frota)S=defaults();
 function mig(){S.ui=S.ui||{};S.ov=S.ov||{};S.man=S.man||{};S.cfg.dias=S.cfg.dias||[1,2,3,4,5,6];if(S.cfg.sent===undefined)S.cfg.sent=1;if(!S.rod){S.rod={base:dstr(new Date()),slots:{}};['Bomba','Betoneira'].forEach(t=>S.rod.slots[t]=S.frota.filter(f=>f.tipo==t&&!f.manut).map(f=>f.entrada))}}mig();
-let UI={tab:'prog',usina:'DF',data:dstr(new Date()),nf:{hora:'08:00',cliente:'',vendedor:'',local:'',peca:'',fck:25,slump:'12±2',m3:16,perc:20,bomba:false}};
+let UI={op:{},tab:'prog',usina:'DF',data:dstr(new Date()),nf:{hora:'08:00',cliente:'',vendedor:'',local:'',peca:'',fck:25,slump:'12±2',m3:16,vm3:'',taxa:'',perc:20,bomba:false}};
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(_){}};
 const gap=()=>Math.max(5,Math.round(8/S.cfg.mh*60));
 const cic=o=>S.cfg.ida+S.cfg.desc+2*(+o.perc||0);
@@ -98,7 +99,7 @@ function status(data,us,o){
   if(o.bomba){const lb=disp('Bomba',s,data)-u.bb[i];if(lb<0)return'cheio';if(lb==0)r='apertado'}}
  return r}
 function sugere(data,us,o){const t=t2m(o.hora);for(let d=15;d<=720;d+=15)for(const x of[t+d,t-d]){if(x<360||x>1020)continue;if(status(data,us,{...o,hora:m2t(x)})=='cabe')return m2t(x)}return null}
-function readNF(){const g=i=>document.getElementById('nf-'+i);return{hora:nt(g('hora').value)||'08:00',cliente:g('cliente').value,vendedor:g('vendedor').value,local:g('local').value,peca:g('peca').value,fck:g('fck').value,slump:g('slump').value,m3:+g('m3').value||0,perc:+g('perc').value||0,bomba:g('bomba').checked}}
+function readNF(){const g=i=>document.getElementById('nf-'+i);return{hora:nt(g('hora').value)||'08:00',cliente:g('cliente').value,vendedor:g('vendedor').value,local:g('local').value,peca:g('peca').value,fck:g('fck').value,slump:g('slump').value,m3:+g('m3').value||0,vm3:+g('vm3').value||0,taxa:+g('taxa').value||0,perc:+g('perc').value||0,bomba:g('bomba').checked}}
 function aviso(){
  const el=$('#st');if(!el)return;const o=readNF();UI.nf=o;
  if(!o.m3){el.innerHTML='';return}
@@ -130,6 +131,23 @@ document.addEventListener('dragover',ev=>{if(ev.target.closest('[data-d]'))ev.pr
 document.addEventListener('drop',ev=>{const t=ev.target.closest('[data-d]');if(!t||!dg||dg==t.dataset.d)return;ev.preventDefault();
  const ia=S.frota.findIndex(f=>f.id==dg),ib=S.frota.findIndex(f=>f.id==t.dataset.d);
  if(S.frota[ia].tipo!=S.frota[ib].tipo)return;const[x]=S.frota.splice(ia,1);S.frota.splice(ib,0,x);dg=null;save();render()});
+async function exportProd(){
+ if(!window.ExcelJS){alert('A biblioteca do Excel não carregou. Recarregue a página.');return}
+ const dl=window.claude?await claude.use('downloads'):null,k=UI.data+UI.usina,P=S.prod[k]||[],fr=id=>S.frota.find(x=>x.id==id)||{},sm=l=>l.reduce((a,r)=>a+(+r.m3||0),0);
+ const wb=new ExcelJS.Workbook(),ws=wb.addWorksheet('Produção'),w2=wb.addWorksheet('Resumo por obra');
+ const hd=(w,h)=>w.addRow(h).eachCell(c=>{c.font={bold:true,color:{argb:'FFFFFFFF'}};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF4472C4'}}});
+ hd(ws,['Prog.','Realizado','Nº Pedido','Cliente','Local','Peça','Vendedor','m³','FCK','Slump','Perc.','Cód. betoneira','Placa','Motorista','Bomba','Obs.','Situação']);
+ P.forEach(r=>{const c=fr(r.cam),b=fr(r.bomba);ws.addRow([r.prog,r.real,r.ped,r.cli,r.loc,r.peca,r.vend,+r.m3||0,r.fck,r.slump,+r.perc||0,c.cod||'',c.placa||'',c.mot||'',b.cod?b.cod+' '+(b.mot||''):'',r.obs,r.real?'Produzida':'Não realizada'])});
+ const pr=P.filter(r=>r.real);ws.addRow([]);
+ [['TOTAL PROGRAMADO (m³)',sm(P)],['TOTAL PRODUZIDO (m³)',sm(pr)],['CARGAS PRODUZIDAS',pr.length]].forEach(x=>{const r=ws.addRow([]);r.getCell(1).value=x[0];r.getCell(8).value=x[1];r.font={bold:true}});
+ for(let i=1;i<=17;i++)ws.getColumn(i).width=i==4||i==5?26:14;
+ hd(w2,['Cliente','Local','m³ programado','m³ produzido','Valor m³ (R$)','Taxa bomba (R$)','Total produzido (R$)']);
+ let gt=0;S.obras.filter(o=>o.data==UI.data&&o.usina==UI.usina).forEach(o=>{const p=sm(P.filter(r=>r.oid==o.id&&r.real)),tx=o.bomba&&p?+o.taxa||0:0,t=p*(+o.vm3||0)+tx;gt+=t;w2.addRow([o.cliente,o.local,+o.m3||0,p,+o.vm3||0,tx,t])});
+ const tr=w2.addRow(['TOTAL','','','','','',gt]);tr.font={bold:true};
+ for(let i=1;i<=7;i++)w2.getColumn(i).width=i<3?26:18;for(let i=5;i<=7;i++)w2.getColumn(i).numFmt='"R$" #,##0.00';
+ const buf=await wb.xlsx.writeBuffer(),nome='producao-'+UI.data+'-'+UI.usina+'.xlsx';
+ if(dl){try{await dl.save({filename:nome,data:buf})}catch(err){if(err&&err.code!='declined')alert('Não foi possível salvar: '+(err.message||err.code))}return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=nome;a.click()}
 let dr=null;
 document.addEventListener('dragstart',ev=>{const t=ev.target.closest&&ev.target.closest('tr[data-r]');dr=t&&ev.target.classList.contains('hd')?t.dataset.r:null;if(dr&&ev.dataTransfer){ev.dataTransfer.setData('text','x');ev.dataTransfer.setDragImage(t,0,0)}});
 document.addEventListener('dragover',ev=>{if(dr&&ev.target.closest('tr[data-r]'))ev.preventDefault()});
@@ -203,18 +221,18 @@ function timeline(){
   h+=`<div class="sl ${c}" title="${m2t(s)}"><b>${i%2?'':pad(s/60)+'h'}</b><span>${Math.max(l,0)}</span><small>🚛${l<0?l:''} B${Math.max(lb,0)}</small></div>`}
  return h+'</div><div class="leg">Número grande: betoneiras livres na meia hora. B: bombas livres. Vermelho: não cabe mais carga. Amarelo: última vaga. Verde: sobra pelo menos uma.</div>'}
 function rowsObras(list){
- return list.map(o=>`<tr><td>${inp('obras',o.id,'hora',o.hora,'time')}</td><td>${inp('obras',o.id,'cliente',o.cliente)}</td><td>${inp('obras',o.id,'vendedor',o.vendedor)}</td><td>${inp('obras',o.id,'local',o.local)}</td><td>${inp('obras',o.id,'peca',o.peca)}</td><td>${inp('obras',o.id,'fck',o.fck)}</td><td>${inp('obras',o.id,'slump',o.slump)}</td><td>${inp('obras',o.id,'m3',o.m3,'number')}</td><td>${inp('obras',o.id,'perc',o.perc,'number')}</td><td class="c"><input type="checkbox" data-k="obras" data-i="${o.id}" data-f="bomba" ${o.bomba?'checked':''}></td><td class="x" onclick="del('obras','${o.id}')">×</td></tr>`).join('')}
+ return list.map(o=>`<tr><td>${inp('obras',o.id,'hora',o.hora,'time')}</td><td>${inp('obras',o.id,'cliente',o.cliente)}</td><td>${inp('obras',o.id,'vendedor',o.vendedor)}</td><td>${inp('obras',o.id,'local',o.local)}</td><td>${inp('obras',o.id,'peca',o.peca)}</td><td>${inp('obras',o.id,'fck',o.fck)}</td><td>${inp('obras',o.id,'slump',o.slump)}</td><td>${inp('obras',o.id,'m3',o.m3,'number')}</td><td>${inp('obras',o.id,'vm3',o.vm3,'number','step="any"')}</td><td>${inp('obras',o.id,'perc',o.perc,'number')}</td><td class="c"><input type="checkbox" data-k="obras" data-i="${o.id}" data-f="bomba" ${o.bomba?'checked':''}></td><td>${inp('obras',o.id,'taxa',o.taxa,'number','step="any"')}</td><td class="c" style="white-space:nowrap;font-weight:700">${brl(tv(o))}</td><td class="x" onclick="del('obras','${o.id}')">×</td></tr>`).join('')}
 function prog(){
  const os=S.obras.filter(o=>o.data==UI.data&&o.usina==UI.usina).sort((a,b)=>t2m(a.hora)-t2m(b.hora));
  const m=os.filter(o=>t2m(o.hora)<720),t=os.filter(o=>t2m(o.hora)>=720),sum=l=>l.reduce((a,o)=>a+(+o.m3||0),0),n=UI.nf;
- const th='<tr><th>Hora</th><th>Cliente</th><th>Vendedor</th><th>Local</th><th>Peça</th><th>FCK</th><th>Slump</th><th>m³</th><th>Percurso (min)</th><th>Bomba</th><th></th></tr>';
+ const th='<tr><th>Hora</th><th>Cliente</th><th>Vendedor</th><th>Local</th><th>Peça</th><th>FCK</th><th>Slump</th><th>m³</th><th>Valor m³ (R$)</th><th>Percurso (min)</th><th>Bomba</th><th>Taxa bomba (R$)</th><th>Total (R$)</th><th></th></tr>';
  const dl=a=>'<datalist id="'+a[0]+'">'+[...new Set(S.obras.map(o=>o[a[1]]).filter(Boolean))].map(v=>`<option value="${e(v)}">`).join('')+'</datalist>';
  const f=(id,v,t='text',x='')=>`<td><input id="nf-${id}" type="${t=='time'?'text':t}" ${t=='time'?'data-t="1" inputmode="numeric" maxlength="5"':''} value="${e(v)}" ${x}></td>`;
  return semana()+timeline()+
- `<table><tr><th colspan="11" style="background:#9DC3E6;color:#000">NOVA OBRA — confira o aviso antes de confirmar</th></tr>${th}<tr class="nf">${f('hora',n.hora,'time')}${f('cliente',n.cliente,'text','list="l-cli"')}${f('vendedor',n.vendedor,'text','list="l-ven"')}${f('local',n.local)}${f('peca',n.peca)}${f('fck',n.fck)}${f('slump',n.slump)}${f('m3',n.m3,'number')}${f('perc',n.perc,'number')}<td class="c"><input id="nf-bomba" type="checkbox" ${n.bomba?'checked':''}></td><td class="c"><button onclick="addObra()">Lançar</button></td></tr></table>${dl(['l-cli','cliente'])}${dl(['l-ven','vendedor'])}
+ `<table><tr><th colspan="14" style="background:#9DC3E6;color:#000">NOVA OBRA — confira o aviso antes de confirmar</th></tr>${th}<tr class="nf">${f('hora',n.hora,'time')}${f('cliente',n.cliente,'text','list="l-cli"')}${f('vendedor',n.vendedor,'text','list="l-ven"')}${f('local',n.local)}${f('peca',n.peca)}${f('fck',n.fck)}${f('slump',n.slump)}${f('m3',n.m3,'number')}${f('vm3',n.vm3,'number','step="any"')}${f('perc',n.perc,'number')}<td class="c"><input id="nf-bomba" type="checkbox" ${n.bomba?'checked':''}></td>${f('taxa',n.taxa,'number','step="any"')}<td></td><td class="c"><button onclick="addObra()">Lançar</button></td></tr></table>${dl(['l-cli','cliente'])}${dl(['l-ven','vendedor'])}
  <div style="margin:6px 0" id="st"></div>
- <div class="sec">MANHÃ — ${sum(m)} m³</div><table>${th}${rowsObras(m)||''}</table>
- <div class="sec gap">TARDE — ${sum(t)} m³</div><table>${th}${rowsObras(t)||''}</table>`}
+ <div class="sec">MANHÃ — ${sum(m)} m³ · ${brl(m.reduce((a,o)=>a+tv(o),0))}</div><table>${th}${rowsObras(m)||''}</table>
+ <div class="sec gap">TARDE — ${sum(t)} m³ · ${brl(t.reduce((a,o)=>a+tv(o),0))}</div><table>${th}${rowsObras(t)||''}</table>`}
 function fila(tipo){
  const L=S.frota.filter(f=>f.tipo==tipo),rows=S.prod[UI.data+UI.usina]||[];
  return'<div class="fila">'+L.map((f,i)=>{const rs=rows.filter(r=>(tipo=='Bomba'?r.bomba:r.cam)==f.id),lv=rs.map(livreDe).filter(Boolean).sort().pop();
@@ -246,7 +264,7 @@ function prod(){
  const rows=P.map(r=>{const cam=S.frota.find(x=>x.id==r.cam),lv=livreDe(r);let bg='';const pend=!cam||!cam.mot;
   if(lv&&now>=0&&r.cam){const d=t2m(lv)-now;bg=d<0?'background:#FF0000;color:#fff':d<=15?'background:#FFFF00':''}
   return`<tr data-r="${r.id}" style="${pend?'background:#F4B183':''}"><td class="hd" draggable="true" style="cursor:grab;white-space:nowrap" title="Arraste para mover a linha">≡<button class="mb" onclick="mv('${r.id}',-1)">▲</button><button class="mb" onclick="mv('${r.id}',1)">▼</button></td><td>${inp('prod',r.id,'prog',r.prog,'time')}</td><td style="white-space:nowrap">${inp('prod',r.id,'real',r.real,'time')}<button class="mb" title="Pegar horário agora" onclick="agora('${r.id}')">⏱</button></td><td>${inp('prod',r.id,'ped',r.ped)}</td><td>${inp('prod',r.id,'cli',r.cli)}</td><td>${inp('prod',r.id,'loc',r.loc)}</td><td>${inp('prod',r.id,'peca',r.peca)}</td><td>${inp('prod',r.id,'vend',r.vend)}</td><td>${inp('prod',r.id,'m3',r.m3,'number')}</td><td>${inp('prod',r.id,'fck',r.fck)}</td><td>${inp('prod',r.id,'slump',r.slump)}</td><td>${inp('prod',r.id,'perc',r.perc,'number')}</td>${sel(r,'cam','Betoneira')}<td style="${cam?`background:${cam.cor};color:${tc(cam.cor)}`:''};white-space:nowrap;padding:4px">${cam&&cam.mot?e(cam.mot)+(sit(cam,UI.data)?' ⚠ '+sit(cam,UI.data):''):'⚠ PENDENTE'}</td>${sel(r,'bomba','Bomba')}<td style="${bg};white-space:nowrap">${inp('prod',r.id,'livre',r.livre||lv,'time','style="font-weight:700"')}${r.livre?`<button class="mb" title="Voltar ao cálculo automático" onclick="autoLivre('${r.id}')">↺</button>`:''}</td><td>${inp('prod',r.id,'obs',r.obs)}</td><td class="x" onclick="del('prod','${r.id}')">×</td></tr>`}).join('');
- return`<div class="tot"><div class="o">TOTAL ${tot.toFixed(1)} m³</div><div class="y">${P.length} cargas</div></div>
+ return`<div class="tot"><div class="o">TOTAL ${tot.toFixed(1)} m³</div><div class="y">${P.length} cargas</div><div style="background:#92D050">PRODUZIDO ${P.filter(r=>r.real).reduce((a,r)=>a+(+r.m3||0),0).toFixed(1)} m³</div></div><div style="margin-bottom:6px"><button onclick="exportProd()">📊 Baixar produção do dia (Excel)</button> <span class="hint">Conta como produzida a carga com horário em “Realizado” (use o ⏱).</span></div>
  <div class="sec" style="margin-top:0">CAMINHÕES E BOMBAS — arraste um cartão para mudar a ordem de carregamento</div>
  <b style="font-size:11px">BETONEIRAS</b>${painel('Betoneira')}<b style="font-size:11px">BOMBAS</b>${painel('Bomba')}
  <div class="sec">USINA DE PLANALTINA ${UI.usina} <span style="background:#F4B183;padding:0 8px;border:1px solid #333">linha laranja = sem motorista (pendente)</span></div>
@@ -254,26 +272,26 @@ function prod(){
  <div style="margin-top:8px"><button onclick="gerar()">↻ Atualizar da programação</button> <span class="hint">As cargas e horários já vêm da programação. O botão atualiza só o que você não editou à mão.</span> <button onclick="novaLinha()">+ Linha</button> <button onclick="(S.man=S.man||{})[UI.data+UI.usina]=0;gerar()">Ordenar por horário</button> <span class="hint">“Livre às” = saída + 1h + percurso + 1h descarga + percurso de volta. Edite se mudar. Fica amarelo 15 min antes e vermelho se já liberou.</span></div>`}
 function eq(){
  const D=UI.data,SIT=['Férias','Banco de hora','Atestado','Falta','Folga'];
- const dia=tipo=>{const O=ordem(tipo,D),P=O.filter(x=>!sit(x,D));return`<table><tr><th>Ordem</th><th>${tipo=='Bomba'?'Motorista bomba / ajudante':'Motorista betoneira'}</th><th>Placa</th><th>Cód.</th><th>Entrada</th><th>Situação no dia</th></tr>`+O.map(f=>{const a=sit(f,D),o=(S.ov[D]||{})[f.id]||{};return`<tr style="background:${a?'#FF9999':'inherit'}"><td class="c">${a?'—':P.indexOf(f)+1}</td><td style="padding:4px">${e(f.mot)||'<i>sem motorista</i>'}</td><td>${inp('frota',f.id,'placa',f.placa)}</td><td>${inp('frota',f.id,'cod',f.cod)}</td><td>${a?'':`<input data-t="1" data-ov="ent" data-i="${f.id}" maxlength="5" inputmode="numeric" value="${e(ent(f,D))}" style="width:62px;text-align:center${o.ent?';background:#FFFF00;font-weight:700':''}">`}</td><td><select data-ov="aus" data-i="${f.id}"><option value="">${a&&!o.aus?e(a)+' (automático)':'Automático'}</option><option value="P" ${o.aus=='P'?'selected':''}>Presente</option>${SIT.map(x=>`<option ${o.aus==x?'selected':''}>${x}</option>`).join('')}</select></td></tr>`}).join('')+'</table>'};
+ const dia=tipo=>{const O=ordem(tipo,D),P=O.filter(x=>!sit(x,D));return`<table><tr><th>Ordem</th><th>${tipo=='Bomba'?'Motorista bomba / ajudante':'Motorista betoneira'}</th><th>Placa</th><th>Entrada</th><th>Situação no dia</th></tr>`+O.map(f=>{const a=sit(f,D),o=(S.ov[D]||{})[f.id]||{};return`<tr style="background:${a?'#FF9999':'inherit'}"><td class="c">${a?'—':P.indexOf(f)+1}</td><td style="padding:4px">${e(f.mot)||'<i>sem motorista</i>'}</td><td>${inp('frota',f.id,'placa',f.placa)}</td><td>${a?'':`<input data-t="1" data-ov="ent" data-i="${f.id}" maxlength="5" inputmode="numeric" value="${e(ent(f,D))}" style="width:62px;text-align:center${o.ent?';background:#FFFF00;font-weight:700':''}">`}</td><td><select data-ov="aus" data-i="${f.id}"><option value="">${a&&!o.aus?e(a)+' (automático)':'Automático'}</option><option value="P" ${o.aus=='P'?'selected':''}>Presente</option>${SIT.map(x=>`<option ${o.aus==x?'selected':''}>${x}</option>`).join('')}</select></td></tr>`}).join('')+'</table>'};
  const cad=tipo=>`<table><tr><th></th><th>Base</th><th>Motorista</th><th>Placa</th><th>Cód.</th><th>Cor</th><th>Manut.</th><th>Ausência</th><th>De</th><th>Até</th><th></th></tr>`+S.frota.filter(f=>f.tipo==tipo).map((f,i)=>`<tr draggable="true" data-d="${f.id}"><td class="c" style="cursor:grab">≡</td><td class="c">${i+1}</td><td>${inp('frota',f.id,'mot',f.mot)}</td><td>${inp('frota',f.id,'placa',f.placa)}</td><td>${inp('frota',f.id,'cod',f.cod)}</td><td class="c"><input type="color" data-k="frota" data-i="${f.id}" data-f="cor" value="${f.cor}" style="width:40px;padding:0"></td><td class="c"><input type="checkbox" data-k="frota" data-i="${f.id}" data-f="manut" ${f.manut?'checked':''}></td><td><select data-k="frota" data-i="${f.id}" data-f="au_t"><option value=""></option>${SIT.map(x=>`<option ${f.au_t==x?'selected':''}>${x}</option>`).join('')}</select></td><td>${inp('frota',f.id,'au_de',f.au_de||'','date')}</td><td>${inp('frota',f.id,'au_ate',f.au_ate||'','date')}</td><td class="x" onclick="del('frota','${f.id}')">×</td></tr>`).join('')+'</table>';
  const sl=t=>(S.rod.slots[t]||[]).join(', ');
  return`<div style="margin-bottom:6px"><button onclick="exportXlsx()">📊 Baixar escala em Excel</button> <button onclick="delete S.ov[UI.data];save();render()">Desfazer ajustes do dia</button> <span class="hint">Escala do dia ${D.split('-').reverse().join('/')} (muda com a data do topo). Amarelo = horário ajustado por você.</span></div>
  <div class="sec" style="margin-top:0">BOMBAS — escala do dia</div>${dia('Bomba')}
  <div class="sec">BETONEIRAS — escala do dia</div>${dia('Betoneira')}
- <div class="sec">RODÍZIO (automático)</div>
+ <details ${UI.op.rod?'open':''} ontoggle="UI.op.rod=this.open"><summary class="sec" style="cursor:pointer">RODÍZIO — sentido, horários e dias de trabalho (clique para abrir)</summary>
  <table style="width:auto"><tr><th>Sentido</th><th>Horários de entrada — Bombas</th><th>Horários de entrada — Betoneiras</th></tr><tr><td><select data-cfg="sent"><option value="1" ${S.cfg.sent>0?'selected':''}>1º de hoje vira 2º amanhã (o último sobe p/ 1º)</option><option value="-1" ${S.cfg.sent<0?'selected':''}>1º de hoje vai para o fim amanhã</option></select></td><td><input data-slot="Bomba" value="${e(sl('Bomba'))}" style="min-width:200px"></td><td><input data-slot="Betoneira" value="${e(sl('Betoneira'))}" style="min-width:260px"></td></tr></table>
  <div style="margin:4px 0">Dias de trabalho: ${[1,2,3,4,5,6,0].map(n=>`<label style="margin-right:8px"><input type="checkbox" data-dia="${n}" ${S.cfg.dias.includes(n)?'checked':''}> ${DIAS[n]}</label>`).join('')}</div>
  <div class="hint" style="margin:4px 0">A ordem do cadastro vale em ${S.rod.base.split('-').reverse().join('/')} e gira uma posição a cada dia de trabalho. Os horários acompanham a posição (1º recebe o 1º horário...). Quem está de férias, banco de hora, atestado, falta ou manutenção sai da fila do dia e os demais sobem.</div>
- <button onclick="fixarBase()">Usar a escala de ${D.split('-').reverse().join('/')} como nova base</button>
- <div class="sec">CADASTRO — BOMBAS (arraste ≡ para mudar a ordem base)</div>${cad('Bomba')}<button onclick="addVeic('Bomba')">+ Bomba</button>
- <div class="sec">CADASTRO — BETONEIRAS</div>${cad('Betoneira')}<button onclick="addVeic('Betoneira')">+ Betoneira</button>
- <div class="sec">PAZEIRO / PROGRAMAÇÃO / FÉRIAS / BANCO DE HORA</div>
+ <button onclick="fixarBase()">Usar a escala de ${D.split('-').reverse().join('/')} como nova base</button></details>
+ <details ${UI.op.cad?'open':''} ontoggle="UI.op.cad=this.open"><summary class="sec" style="cursor:pointer">CADASTRO — motoristas, caminhões e ausências (clique para abrir)</summary><b>Bombas</b> (arraste ≡ para mudar a ordem base)${cad('Bomba')}<button onclick="addVeic('Bomba')">+ Bomba</button>
+ <b>Betoneiras</b>${cad('Betoneira')}<button onclick="addVeic('Betoneira')">+ Betoneira</button></details>
+ <details ${UI.op.out?'open':''} ontoggle="UI.op.out=this.open"><summary class="sec" style="cursor:pointer">PAZEIRO / PROGRAMAÇÃO / FÉRIAS / BANCO DE HORA (clique para abrir)</summary>
  <table><tr><th>Função</th><th>Nome</th><th>Horário</th><th></th></tr>${S.staff.map(s=>`<tr><td>${inp('staff',s.id,'cat',s.cat)}</td><td>${inp('staff',s.id,'nome',s.nome)}</td><td>${inp('staff',s.id,'hora',s.hora,'time')}</td><td class="x" onclick="del('staff','${s.id}')">×</td></tr>`).join('')}</table>
- <button onclick="S.staff.push({id:uid(),cat:'',nome:'',hora:''});save();render()">+ Pessoa</button> <span class="hint">Nome em “Férias” ou “Banco de hora” igual ao de um motorista = ausente automático.</span>
- <div class="sec">CAPACIDADE E BACKUP</div>
+ <button onclick="S.staff.push({id:uid(),cat:'',nome:'',hora:''});save();render()">+ Pessoa</button> <span class="hint">Nome em “Férias” ou “Banco de hora” igual ao de um motorista = ausente automático.</span></details>
+ <details ${UI.op.cap?'open':''} ontoggle="UI.op.cap=this.open"><summary class="sec" style="cursor:pointer">CAPACIDADE E BACKUP (clique para abrir)</summary>
  <table style="width:auto"><tr><th>m³/h da central</th><th>Ida fixa (min)</th><th>Descarga (min)</th></tr><tr><td><input type="number" data-cfg="mh" value="${S.cfg.mh}"></td><td><input type="number" data-cfg="ida" value="${S.cfg.ida}"></td><td><input type="number" data-cfg="desc" value="${S.cfg.desc}"></td></tr></table>
  <div class="hint" style="margin:4px 0">Intervalo entre cargas: ${gap()} min (8 m³ ÷ m³/h). Ciclo do caminhão = ida fixa + descarga + 2 × percurso.</div>
- <button onclick="backup()">Baixar backup</button> <label class="hint"><button onclick="this.nextElementSibling.click()">Restaurar backup</button><input type="file" accept=".json" hidden onchange="restaurar(this.files[0])"></label>`}
+ <button onclick="backup()">Baixar backup</button> <label class="hint"><button onclick="this.nextElementSibling.click()">Restaurar backup</button><input type="file" accept=".json" hidden onchange="restaurar(this.files[0])"></label></details>`}
 function render(){if(UI.tab=='prod'&&!(S.pa&&S.pa[UI.data+UI.usina])&&!(S.prod[UI.data+UI.usina]||[]).length&&S.obras.some(o=>o.data==UI.data&&o.usina==UI.usina))gerar(true);head();$('#app').innerHTML=UI.tab=='prog'?prog():UI.tab=='prod'?prod():eq();if(UI.tab=='prog')aviso()}
 render();
 </script></body></html>
