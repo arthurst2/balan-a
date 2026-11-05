@@ -57,11 +57,11 @@ td input[data-t]{width:62px;min-width:62px;text-align:center}
 <div class="bar" id="bar"></div>
 <div class="pad" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.js"></script>
 <script>
 const $=s=>document.querySelector(s),K='usina_v1';
-// Preencha depois de criar o projeto no Supabase (Project Settings > API). Em branco = o site funciona só neste navegador.
-const SB={url:'',key:''};
+// Preencha com o Project URL e a chave PUBLISHABLE (sb_publishable_...) do Supabase (Project Settings > API Keys). NUNCA use a chave secret/service_role. Em branco = o site funciona só neste navegador.
+const SB={url:'https://larcovmucjuaurvwwoly.supabase.co',key:'sb_publishable_0YGmWQR2dWZ_RRLKXmvwMw_5jTekCCX'};SB.url=SB.url.replace(/\/rest\/v1\/?$/,'').replace(/\/+$/,'');
 const pad=n=>String(n).padStart(2,'0');
 const m2t=m=>pad(Math.floor(m/60)%24)+':'+pad(((m%60)+60)%60);
 const t2m=t=>{const[a,b]=(t||'0:0').split(':');return(+a||0)*60+(+b||0)};
