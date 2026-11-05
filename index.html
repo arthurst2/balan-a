@@ -51,13 +51,17 @@ td input[data-t]{width:62px;min-width:62px;text-align:center}
 .pc .chip{display:block;margin-bottom:3px}
 .mb{padding:0 5px;margin:0 2px;font-size:13px;line-height:22px}
 .tg{display:inline-block;color:#fff;padding:1px 5px;font-size:10px;font-weight:700;white-space:nowrap;margin-top:2px}
+.pt tr{background:#D9D9D9}.pt td{background:inherit}.pt th{background:#9DC3E6;color:#000;border:2px solid #000;font-weight:700}.pt th.bal{background:#ED7D31}
 </style></head><body>
 <div class="ban" id="ban"></div>
 <div class="bar" id="bar"></div>
 <div class="pad" id="app"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const $=s=>document.querySelector(s),K='usina_v1';
+// Preencha depois de criar o projeto no Supabase (Project Settings > API). Em branco = o site funciona só neste navegador.
+const SB={url:'',key:''};
 const pad=n=>String(n).padStart(2,'0');
 const m2t=m=>pad(Math.floor(m/60)%24)+':'+pad(((m%60)+60)%60);
 const t2m=t=>{const[a,b]=(t||'0:0').split(':');return(+a||0)*60+(+b||0)};
@@ -87,9 +91,10 @@ function mig(){S.ui=S.ui||{};S.ov=S.ov||{};S.man=S.man||{};S.cfg.dias=S.cfg.dias
  if(!S.locDF){S.locDF=[];S.locGO=[];S.par=[]}
  if(!S.locSeed){seedLoc();S.locSeed=1}
  if(!S.cf2){const h=dstr(new Date());S.obras.forEach(o=>{if(o.conf===undefined||o.data>=h)o.conf=false});S.cf2=1}
- S.esc=S.esc||{};if(S.rst===undefined)resetPlanilha(dstr(new Date()))}mig();
+ S.esc=S.esc||{};if(S.rst===undefined)resetPlanilha(dstr(new Date()));
+ if(!S.clr1){S.obras=[];S.prod={};S.pa={};S.man={};S.clr1=1}}mig();
 let UI={op:{},tab:'prog',usina:'DF',data:dstr(new Date()),nf:{hora:'08:00',cliente:'',vendedor:'',local:'',peca:'',fck:25,slump:'12±2',m3:16,vm3:'',taxa:'',perc:20,bomba:false}};
-const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(_){}};
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(_){}push()};
 const gap=()=>Math.max(5,Math.round(8/S.cfg.mh*60));
 const cic=o=>S.cfg.ida+S.cfg.desc+2*(+o.perc||0);
 const cargas=o=>{const n=Math.max(1,Math.ceil((+o.m3||8)/8)),g=gap();return Array.from({length:n},(_,k)=>{const s=t2m(o.hora)+k*g;return[s,s+cic(o)]})};
@@ -132,7 +137,7 @@ document.addEventListener('change',ev=>{const t=ev.target,k=t.dataset.k;if(t.dat
  if(t.dataset.ov){ovSet(t.dataset.i,t.dataset.ov,t.value);return}if(t.dataset.coord){S.cfg.coord[t.dataset.coord]=t.value;save();render();return}if(t.dataset.slot){S.rod.slots[t.dataset.slot]=t.value.split(/[ ,;]+/).map(nt).filter(Boolean);save();render();return}if(t.dataset.dia!==undefined){const d=+t.dataset.dia,a=S.cfg.dias;S.cfg.dias=t.checked?[...new Set([...a,d])]:a.filter(x=>x!=d);save();render();return}if(t.dataset.cfg){S.cfg[t.dataset.cfg]=+t.value||0;save();render();return}
  if(t.id=='acum'){S.acum[UI.data+UI.usina]=+t.value||0;save();render();return}
  if(!k)return;const it=find(k,t.dataset.i);if(!it)return;
- it[t.dataset.f]=t.type=='checkbox'?t.checked:t.type=='number'?+t.value:t.value;if(k=='obras'&&t.dataset.f=='local'){const m=locMin(it.local,it.usina);if(m)it.perc=m}if(k&&k.slice(0,3)=='loc'&&t.dataset.f=='m')delete it.est;if(k=='prod'){it.ed=it.ed||{};it.ed[t.dataset.f]=1}save();setTimeout(rr,0)});
+ it[t.dataset.f]=t.type=='checkbox'?t.checked:t.type=='number'?+t.value:t.value;if(k=='obras'&&t.dataset.f=='local'){const m=locMin(it.local,it.usina);if(m)it.perc=m}if(k&&k.slice(0,3)=='loc'&&t.dataset.f=='m')delete it.est;if(k=='prod'&&it.oid&&['ped','zap','sis','traco','brita','aj1','aj2'].includes(t.dataset.f)){(S.prod[UI.data+UI.usina]||[]).forEach(r=>{if(r.oid==it.oid&&!r[t.dataset.f])r[t.dataset.f]=it[t.dataset.f]})}if(k=='prod'){it.ed=it.ed||{};it.ed[t.dataset.f]=1}save();setTimeout(rr,0)});
 document.addEventListener('input',ev=>{if(ev.target.id&&ev.target.id.startsWith('nf-'))aviso()});
 let dg=null;
 document.addEventListener('dragstart',ev=>{const t=ev.target.closest('[data-d]');if(t)dg=t.dataset.d});
@@ -171,21 +176,73 @@ function proxima(){
  const it=L.slice(0,6).map(x=>{const r=x.r,h=`<b>${e(r.cli)||'(sem cliente)'}</b> · ${e(r.prog)}${da&&x.st>t2m(r.prog)?' (~'+hh(x.st)+')':''} · ${+r.m3||0} m³${fl(r)} → `,u=x.esc&&x.tp!='ok'&&x.tp!='nada'?` <button class="mb" onclick="aplicar('${r.id}','cam','${x.esc.id}')">Usar</button>`:'',cn=x.cur?nome(x.cur):((S.frota.find(v=>v.id==r.cam)||{}).cod||'')+' (sem motorista/ausente)';
   return'<div style="margin:4px 0">'+h+(x.tp=='ok'?'✔ '+e(nome(x.esc))+' está certa':x.tp=='mande'?'mande <b>'+e(nome(x.esc))+'</b> ('+(x.n0?'livre desde '+hh(x.liv0):'ainda não usada')+')'+u:x.tp=='troque'?'⚠ '+e(cn)+' não está livre — troque por <b>'+e(nome(x.esc))+'</b>'+u:x.tp=='espera'?'⏳ nenhuma betoneira livre às '+hh(x.st)+'; a primeira é <b>'+e(nome(x.esc))+'</b> às '+hh(x.liv0)+' (+'+Math.max(0,x.liv0-x.st)+' min)'+u:'⛔ sem betoneira com motorista presente')+'</div>'}).join('');
  return`<div style="border:2px solid #9DC3E6;background:#F5FAFF;padding:8px;margin-bottom:8px"><b>💡 O que fazer agora</b> <span class="hint">${now>=0?'agora '+hh(now)+' · ':''}atraso médio recente: ${atr} min · recalcula a cada lançamento e a cada minuto</span>${it||'<div style="margin:4px 0">✔ Todas as cargas já saíram.</div>'}${L.length>6?'<div class="hint">+ '+(L.length-6)+' cargas depois destas</div>':''}${pb.map(x=>'<div style="margin:4px 0">'+x.m+'</div>').join('')}</div>`}
+const mp=r=>r.real?(+(r.m3r||r.m3)||0):0;
+function acumAnt(D){let t=0;for(const k in S.prod){const d=k.slice(0,10);if(d.slice(0,7)==D.slice(0,7)&&d<D)S.prod[k].forEach(r=>t+=mp(r))}return t}
+function prodDia(D){let t=0;['DF','GO'].forEach(u=>(S.prod[D+u]||[]).forEach(r=>t+=mp(r)));return t}
+async function xlsxProd(){
+ const D=UI.data,Lk=u=>S.prod[D+u]||[],hm=x=>{const m=/^(\d{1,2}):(\d{2})$/.exec(x||'');return m?(+m[1]*60+ +m[2])/1440:null},p1=x=>String(x||'').split('/')[0].trim();
+ const BL='FF9DC3E6',GR='FF00B050',GY='FFD9D9D9',OR='FFED7D31',YE='FFFFFF00',DG='FFA6A6A6',PU='FFE4DFEC',GN='FFC6E0B4',PE='FFF4B183';
+ const H=['Prog. (Horário)','Horário Realizado','Nº Pedido','Nº Contrato do Zap','Nº Contrato Sistema','Carga','Cliente','Local concretagem','Peça','Vendedor','Valor m³ (R$)','Taxa Bomba (R$)','Valor Remessa Unit. (R$)','Tipo','Motorista Betoneira','Motorista Bomba','AJUDANTE','AJUDANTE','Traço','FCK','Brita','Slump','M³ Prog.','M³','CIMENTO','ADITIVO','BRITA 1','BRITA 0','AREIA','PÓ','Balança'];
+ const W=[10,11,9,11,13,9,28,22,16,14,11,11,14,10,18,18,11,11,8,6,8,8,8,7,10,9,10,10,10,8,20],NC=H.length;
+ const wb=new ExcelJS.Workbook(),ws=wb.addWorksheet('Produção',{views:[{state:'frozen',xSplit:2,ySplit:3}],pageSetup:{orientation:'landscape',fitToPage:true,fitToHeight:0}});
+ W.forEach((w,i)=>ws.getColumn(i+1).width=w);
+ const fl=c=>({type:'pattern',pattern:'solid',fgColor:{argb:c}}),th={style:'thin'},md={style:'medium'},B1={top:th,left:th,bottom:th,right:th},B2={top:md,left:md,bottom:md,right:md},ctr={horizontal:'center',vertical:'middle',wrapText:true},lft={horizontal:'left',vertical:'middle'};
+ const sty=(r,c,o)=>{const x=ws.getCell(r,c);if(o.f)x.fill=fl(o.f);x.font={name:'Arial',size:o.s||10,bold:!!o.b,italic:!!o.i,color:o.c?{argb:o.c}:undefined};x.alignment=o.a||ctr;x.border=o.bd||B1;if(o.n)x.numFmt=o.n;return x};
+ const rng=(r1,c1,r2,c2,o)=>{for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++)sty(r,c,o)};
+ const RD=Lk('DF'),RG=Lk('GO'),dfN=Math.max(20,RD.length),goN=Math.max(10,RG.length);
+ const a1=5,b1=4+dfN,s1=b1+1,s2=b1+2,gb=b1+3,ga=gb+1,gz=gb+goN,bd2=gz+1;
+ const ac=acumAnt(D),pD=RD.reduce((a,r)=>a+mp(r),0),pG=RG.reduce((a,r)=>a+mp(r),0);
+ // topo
+ ws.mergeCells('A1:D1');ws.mergeCells('A2:D2');rng(1,1,2,7,{f:BL,b:1,s:11,a:lft,bd:B2});
+ ws.getCell('A1').value='ACUMULADO DIA ANTERIOR';ws.getCell('A2').value='ACUMULADO DO DIA';
+ sty(1,5,{f:YE,b:1,s:12,c:'FF0000FF',a:{horizontal:'right',vertical:'middle'},bd:B2,n:'0.00'}).value=ac;
+ sty(2,5,{f:BL,b:1,s:12,a:{horizontal:'right',vertical:'middle'},bd:B2,n:'0.00'}).value={formula:`O2+O${s2}`,result:pD+pG};
+ sty(1,7,{f:OR,b:1,s:14,bd:B2}).value='TOTAL GERAL';sty(2,7,{f:OR,b:1,s:14,bd:B2,n:'0.00" m³"'}).value={formula:'E1+E2',result:ac+pD+pG};
+ ws.mergeCells('H1:K1');ws.getCell('H1').value='Produção de Concreto';ws.getCell('H1').font={name:'Arial',size:16,bold:true};ws.getCell('H1').alignment=ctr;
+ ws.getCell('L1').value='Data:';ws.getCell('L1').font={name:'Arial',size:10,bold:true};ws.getCell('L1').alignment={horizontal:'right',vertical:'middle'};
+ const [yy,mm,dd]=D.split('-').map(Number);ws.mergeCells('M1:N1');sty(1,13,{f:YE,b:1,c:'FF0000FF',bd:B1,n:'dd/mm/yyyy'}).value=new Date(Date.UTC(yy,mm-1,dd));sty(1,14,{f:YE,bd:B1});
+ ws.mergeCells('H2:N2');rng(2,8,2,14,{f:YE,b:1,s:14,bd:B2});ws.getCell('H2').value='O senhor é o meu refúgio e a minha fortaleza!';
+ ws.mergeCells('O1:P1');rng(1,15,1,16,{f:YE,b:1,s:11,bd:B2});ws.getCell('O1').value='Planaltina DF';
+ ws.mergeCells('O2:P2');rng(2,15,2,16,{f:YE,b:1,s:12,bd:B2,n:'0.0'});ws.getCell('O2').value={formula:`SUM(X${a1}:X${b1})`,result:pD};
+ rng(2,17,2,18,{f:BL,bd:B2});ws.mergeCells('S2:U2');rng(2,19,2,22,{f:BL,b:1,s:11,bd:B2,n:'0.0'});ws.getCell('S2').value='TOTAL';ws.getCell('V2').value={formula:'X2',result:pD+pG};
+ const tot=f=>[...RD,...RG].reduce((a,r)=>a+(+r[f]||0),0),sum=(c,res,n)=>{const L=ws.getColumn(c).letter;sty(2,c,{f:BL,b:1,bd:B2,n}).value={formula:`SUM(${L}${a1}:${L}${b1},${L}${ga}:${L}${gz})`,result:res}};
+ sum(23,tot('m3'),'0.0');sum(24,pD+pG,'0.0');[['cim',25],['adi',26],['b1',27],['b0',28],['are',29],['po',30]].forEach(([f,c])=>sum(c,tot(f),'0.0'));
+ H.forEach((h,i)=>{sty(3,i+1,{f:i==NC-1?OR:BL,b:1,bd:B2}).value=h});ws.getRow(3).height=36;
+ // seções
+ const band=(r,t)=>{ws.mergeCells(r,1,r,NC);rng(r,1,r,NC,{f:GR,b:1,s:11,a:lft,bd:B2});ws.getCell(r,1).value=t};
+ const nomesB=S.mots.filter(m=>m.tipo=='Betoneira').map(m=>p1(m.nome)),nomesP=S.mots.filter(m=>m.tipo=='Bomba').map(m=>p1(m.nome)),nomesA=[...new Set(S.mots.filter(m=>m.tipo=='Bomba').flatMap(m=>String(m.nome||'').split('/').slice(1).map(x=>x.trim())).filter(Boolean))];
+ const lst=a=>({type:'list',allowBlank:true,showErrorMessage:false,formulae:['"'+a.join(',').slice(0,250)+'"']});
+ const sec=(a,n,bound,rows)=>{
+  for(let i=0;i<n;i++){const r=a+i,R=rows[i],ob=R&&S.obras.find(z=>z.id==R.oid);ws.getRow(r).height=18;
+   for(let c=1;c<=NC;c++)sty(r,c,{f:c==13?DG:GY,a:[7,8,9,10,15,16,31].includes(c)?lft:ctr,n:c<3?'hh:mm':[11,12,13].includes(c)?'"R$" #,##0.00':[23,24].includes(c)?'0.0':undefined});
+   const v=(c,x)=>{if(x!==undefined&&x!==null&&x!=='')ws.getCell(r,c).value=x};
+   let fres='',mres='',kk=null,xx=null;
+   if(R){const dm=drvOf(R.cam,D),dp=R.bomba?drvOf(R.bomba,D):null,aj=dp?String(dp.nome||'').split('/').slice(1).map(x=>x.trim()):[],first=ob&&rows.findIndex(x=>x.oid==R.oid)===i;
+    kk=ob&&+ob.vm3>0?+ob.vm3:null;xx=mp(R)>0?mp(R):null;
+    v(1,hm(R.prog));v(2,hm(R.real));v(3,R.ped);v(4,R.zap);v(5,R.sis);v(7,R.cli);v(8,R.loc);v(9,R.peca);v(10,R.vend);v(11,kk);v(12,first&&ob.bomba&&+ob.taxa>0?+ob.taxa:null);
+    v(14,(R.bomba||(ob&&ob.bomba))?'Bomba':'Direto');v(15,dm?p1(dm.nome):'');v(16,dp?p1(dp.nome):'');v(17,R.aj1||aj[0]);v(18,R.aj2||aj[1]);
+    v(19,R.traco);v(20,R.fck);v(21,R.brita);v(22,R.slump);v(23,+R.m3||null);v(24,xx);[['cim',25],['adi',26],['b1',27],['b0',28],['are',29],['po',30]].forEach(([f,c])=>v(c,+R[f]||null));v(31,R.obs);
+    if(R.cli){const later=rows.slice(i+1).filter(x=>x.cli==R.cli).length;fres=later==0?'ÚLTIMA':(rows.slice(0,i+1).filter(x=>x.cli==R.cli).length)+'ª'}
+    if(kk&&xx)mres=kk*xx}
+   ws.getCell(r,6).value={formula:`IF(G${r}="","",IF(COUNTIF(G${r+1}:G$${bound},G${r})=0,"ÚLTIMA",COUNTIF(G$${a}:G${r},G${r})&"ª"))`,result:fres};ws.getCell(r,6).font={name:'Arial',size:10,bold:true};
+   ws.getCell(r,13).value={formula:`IF(OR(K${r}="",X${r}=""),"",K${r}*X${r})`,result:mres};
+   ws.getCell(r,14).dataValidation=lst(['Bomba','Direto']);ws.getCell(r,15).dataValidation=lst(nomesB);ws.getCell(r,16).dataValidation=lst(nomesP);ws.getCell(r,17).dataValidation=lst(nomesA);ws.getCell(r,18).dataValidation=lst(nomesA)}
+  const ref=`A${a}:${ws.getColumn(NC).letter}${a+n-1}`,st=c=>({fill:{type:'pattern',pattern:'solid',bgColor:{argb:c}}});
+  ws.addConditionalFormatting({ref,rules:[{type:'expression',priority:1,formulae:[`$F${a}="ÚLTIMA"`],style:{...st(PU),font:{bold:true,color:{argb:'FF5B2C83'}}}},{type:'expression',priority:2,formulae:[`$B${a}<>""`],style:st(GN)},{type:'expression',priority:3,formulae:[`AND($A${a}<>"",$O${a}="")`],style:st(PE)}]})};
+ band(4,'USINA DE PLANALTINA DF');sec(a1,dfN,s1,RD);
+ rng(s1,1,s2,NC,{f:BL,bd:B2});
+ sty(s1,13,{f:YE,b:1,bd:B2}).value='TOTAL DO DIA (R$)';
+ const money=[...RD,...RG].reduce((a,r)=>{const ob=S.obras.find(z=>z.id==r.oid),k=ob&&+ob.vm3>0?+ob.vm3:0,x=mp(r);return a+k*x},0)+[...RD,...RG].reduce((a,r,i,arr)=>{const ob=S.obras.find(z=>z.id==r.oid);return a+(ob&&ob.bomba&&+ob.taxa>0&&arr.findIndex(x=>x.oid==r.oid)==i?+ob.taxa:0)},0);
+ sty(s2,13,{f:YE,b:1,bd:B2,n:'"R$" #,##0.00'}).value={formula:`SUM(M${a1}:M${b1},M${ga}:M${gz},L${a1}:L${b1},L${ga}:L${gz})`,result:money};
+ ws.mergeCells(s1,16,s1,17);ws.mergeCells(s2,16,s2,17);
+ sty(s1,15,{f:YE,b:1,bd:B2}).value='PLANALTINA GO';sty(s1,16,{f:YE,b:1,bd:B2}).value='TOTAL MÊS';
+ sty(s2,15,{f:YE,b:1,bd:B2,n:'0.0'}).value={formula:`SUM(X${ga}:X${gz})`,result:pG};sty(s2,16,{f:YE,b:1,bd:B2,n:'0.0'}).value={formula:'G2',result:ac+pD+pG};
+ band(gb,'USINA DE PLANALTINA GO');sec(ga,goN,bd2,RG);
+ ws.getCell(bd2+2,1).value='Legenda: amarelo = você preenche. Verde claro = carga produzida. Lilás = última carga do cliente. Laranja = carga sem motorista de betoneira.';ws.getCell(bd2+2,1).font={name:'Arial',size:10,italic:true};
+ return await wb.xlsx.writeBuffer()}
 async function exportProd(){
  if(!window.ExcelJS){alert('A biblioteca do Excel não carregou. Recarregue a página.');return}
- const dl=window.claude?await claude.use('downloads'):null,k=UI.data+UI.usina,P=S.prod[k]||[],fr=id=>S.frota.find(x=>x.id==id)||{},sm=l=>l.reduce((a,r)=>a+(+r.m3||0),0);
- const wb=new ExcelJS.Workbook(),ws=wb.addWorksheet('Produção'),w2=wb.addWorksheet('Resumo por obra');
- const hd=(w,h)=>w.addRow(h).eachCell(c=>{c.font={bold:true,color:{argb:'FFFFFFFF'}};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF4472C4'}}});
- hd(ws,['Prog.','Realizado','Nº Pedido','Cliente','Local','Peça','Vendedor','m³','FCK','Slump','Perc.','Cód. betoneira','Placa','Motorista','Bomba','Balança','Situação']);
- P.forEach(r=>{const c=fr(r.cam),b=fr(r.bomba);ws.addRow([r.prog,r.real,r.ped,r.cli,r.loc,r.peca,r.vend,+r.m3||0,r.fck,r.slump,+r.perc||0,c.cod||'',c.placa||'',(drvOf(r.cam,UI.data)||{}).nome||'',b.cod?b.cod+' '+((drvOf(r.bomba,UI.data)||{}).nome||''):'',r.obs,r.real?'Produzida':'Não realizada'])});
- const pr=P.filter(r=>r.real);ws.addRow([]);
- [['TOTAL PROGRAMADO (m³)',sm(P)],['TOTAL PRODUZIDO (m³)',sm(pr)],['CARGAS PRODUZIDAS',pr.length]].forEach(x=>{const r=ws.addRow([]);r.getCell(1).value=x[0];r.getCell(8).value=x[1];r.font={bold:true}});
- for(let i=1;i<=17;i++)ws.getColumn(i).width=i==4||i==5?26:14;
- hd(w2,['Cliente','Local','m³ programado','m³ produzido','Valor m³ (R$)','Taxa bomba (R$)','Total produzido (R$)']);
- let gt=0;S.obras.filter(o=>o.data==UI.data&&o.usina==UI.usina).forEach(o=>{const p=sm(P.filter(r=>r.oid==o.id&&r.real)),tx=o.bomba&&p?+o.taxa||0:0,t=p*(+o.vm3||0)+tx;gt+=t;w2.addRow([o.cliente,o.local,+o.m3||0,p,+o.vm3||0,tx,t])});
- const tr=w2.addRow(['TOTAL','','','','','',gt]);tr.font={bold:true};
- for(let i=1;i<=7;i++)w2.getColumn(i).width=i<3?26:18;for(let i=5;i<=7;i++)w2.getColumn(i).numFmt='"R$" #,##0.00';
- const buf=await wb.xlsx.writeBuffer(),nome='producao-'+UI.data+'-'+UI.usina+'.xlsx';
+ const dl=window.claude?await claude.use('downloads'):null,buf=await xlsxProd(),nome='producao-'+UI.data+'.xlsx';
  if(dl){try{await dl.save({filename:nome,data:buf})}catch(err){if(err&&err.code!='declined')alert('Não foi possível salvar: '+(err.message||err.code))}return}
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download=nome;a.click()}
 let dr=null;
@@ -255,7 +312,7 @@ function fixarBase(){['Bomba','Betoneira'].forEach(t=>{const o=ordem(t,UI.data);
 const addMot=tipo=>{S.mots.push({id:uid(),nome:'',tipo,vid:''});save();render()};
 function addVeic(tipo){S.frota.push({id:uid(),mot:'',placa:'',entrada:'06:00',cod:'',tipo,manut:false,cor:COR[S.frota.length%12]});save();render()}
 async function backup(){const dl=window.claude?await claude.use('downloads'):null;if(dl){try{await dl.save({filename:'usina-backup-'+dstr(new Date())+'.json',data:JSON.stringify(S)})}catch(_){}return}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='usina-backup-'+dstr(new Date())+'.json';a.click()}
-function restaurar(f){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.frota){S=d;if(S.rst===undefined)S.rst=1;if(S.cf2===undefined)S.cf2=1;mig();save();render()}}catch(_){alert('Arquivo inválido')}};r.readAsText(f)}
+function restaurar(f){if(sb&&!confirm('Restaurar substitui os dados online dos dois usuários. Continuar?'))return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.frota){S=d;if(S.rst===undefined)S.rst=1;if(S.cf2===undefined)S.cf2=1;mig();save();render()}}catch(_){alert('Arquivo inválido')}};r.readAsText(f)}
 const setD=d=>{UI.data=d;render()};
 const shift=n=>{const d=pd(UI.data);d.setDate(d.getDate()+n);setD(dstr(d))};
 const nt=v=>{const d=String(v||'').replace(/\D/g,'');if(!d)return'';let h,m;if(d.length<=2){h=+d;m=0}else{m=+d.slice(-2);h=+d.slice(0,-2)}return(h>23||m>59)?v:pad(h)+':'+pad(m)};
@@ -267,7 +324,7 @@ function head(){
  $('#ban').textContent=`USINA DE PLANALTINA ${UI.usina} — ${DIAS[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
  $('#bar').innerHTML=['prog:Programação','prod:Produção do dia','eq:Equipe e frota'].map(x=>{const[a,b]=x.split(':');return`<button class="tab ${UI.tab==a?'on':''}" onclick="UI.tab='${a}';render()">${b}</button>`}).join('')+
  `<span style="margin-left:12px">Usina:</span><button class="${UI.usina=='DF'?'on':''}" onclick="UI.usina='DF';render()">DF</button><button class="${UI.usina=='GO'?'on':''}" onclick="UI.usina='GO';render()">GO</button>`+
- `<span style="margin-left:12px"></span><button onclick="shift(-1)">◀</button><input type="date" value="${UI.data}" onchange="setD(this.value)"><button onclick="shift(1)">▶</button><button onclick="setD(dstr(new Date()))">Hoje</button>`}
+ `<span style="margin-left:12px"></span><button onclick="shift(-1)">◀</button><input type="date" value="${UI.data}" onchange="setD(this.value)"><button onclick="shift(1)">▶</button><button onclick="setD(dstr(new Date()))">Hoje</button>`+sbar()}
 function semana(){
  const d=pd(UI.data),dow=d.getDay()||7;d.setDate(d.getDate()-dow+1);let h='<div class="sem">';
  for(let i=0;i<7;i++){const s=dstr(d),os=S.obras.filter(o=>o.data==s&&o.usina==UI.usina),m3=os.reduce((a,o)=>a+(+o.m3||0),0),u=uso(s,UI.usina);
@@ -362,15 +419,15 @@ function prod(){
  const k=UI.data+UI.usina,P=(S.prod[k]||[]),tot=P.reduce((a,r)=>a+(+r.m3||0),0),ac=S.acum[k]||0;
  const now=dstr(new Date())==UI.data?new Date().getHours()*60+new Date().getMinutes():-1;
  const sel=(r,f,tipo)=>{const cur=S.frota.find(x=>x.id==r[f]);return`<td><select data-k="prod" data-i="${r.id}" data-f="${f}" style="${cur?`background:${cur.cor};color:${tc(cur.cor)}`:''}"><option value=""></option>${S.frota.filter(x=>x.tipo==tipo).map(x=>`<option value="${x.id}" ${x.id==r[f]?'selected':''} style="background:${x.cor};color:${tc(x.cor)}">${e(x.cod)} ${e(x.placa)} · ${e(((drvOf(x.id,UI.data)||{}).nome||'sem motorista').split('/')[0])}${x.manut?' (manut.)':''}</option>`).join('')}</select></td>`};
- const UL=ultimas(P),rows=P.map(r=>{const ob=S.obras.find(z=>z.id==r.oid),ult=UL.has(r.id),cam=S.frota.find(x=>x.id==r.cam),lv=livreDe(r);let bg='';const dm=cam&&drvOf(cam.id,UI.data),pend=!dm;
+ const UL=ultimas(P),car=r=>{if(!r.oid)return'';const i=P.filter(x=>x.oid==r.oid).indexOf(r)+1;return UL.has(r.id)?'ÚLTIMA':i+'ª'},rows=P.map(r=>{const ob=S.obras.find(z=>z.id==r.oid),ult=UL.has(r.id),cam=S.frota.find(x=>x.id==r.cam),lv=livreDe(r);let bg='';const dm=cam&&drvOf(cam.id,UI.data),pend=!dm;const m=+(r.m3r||r.m3)||0,vm=ob?+ob.vm3||0:0,tx=ob&&ob.bomba&&P.find(x=>x.oid==r.oid)===r?+ob.taxa||0:0,tipo=(r.bomba||(ob&&ob.bomba))?'Bomba':'Direto',dp=r.bomba?drvOf(r.bomba,UI.data):null,aj=dp?String(dp.nome||'').split('/').slice(1).map(x=>x.trim()):[];
   if(lv&&now>=0&&r.cam){const d=t2m(lv)-now;bg=d<0?'background:#FF0000;color:#fff':d<=15?'background:#FFFF00':''}
-  return`<tr data-r="${r.id}" style="${pend?'background:#F4B183':''}${ult?';box-shadow:inset 0 0 0 3px #7030A0':''}"><td class="hd" draggable="true" style="cursor:grab;white-space:nowrap" title="Arraste para mover a linha">≡<button class="mb" onclick="mv('${r.id}',-1)">▲</button><button class="mb" onclick="mv('${r.id}',1)">▼</button>${ult?'<br><span class="tg" style="background:#7030A0">🏁 ÚLTIMA CARGA</span>':''}${ob&&!ob.conf?'<br><span class="tg" style="background:#C00">SEM CONFIRMAÇÃO</span>':''}${ob&&ob.at?'<br><span class="tg" style="background:#E65100">⚠ ATENÇÃO'+(ob.atn?': '+e(ob.atn):'')+'</span>':''}</td><td>${inp('prod',r.id,'prog',r.prog,'time')}</td><td style="white-space:nowrap">${inp('prod',r.id,'real',r.real,'time')}<button class="mb" title="Pegar horário agora" onclick="agora('${r.id}')">⏱</button></td><td>${inp('prod',r.id,'ped',r.ped)}</td><td>${inp('prod',r.id,'cli',r.cli)}</td><td>${inp('prod',r.id,'loc',r.loc)}</td><td>${inp('prod',r.id,'peca',r.peca)}</td><td>${inp('prod',r.id,'vend',r.vend)}</td><td>${inp('prod',r.id,'m3',r.m3,'number')}</td><td>${inp('prod',r.id,'fck',r.fck)}</td><td>${inp('prod',r.id,'slump',r.slump)}</td><td>${inp('prod',r.id,'perc',r.perc,'number')}</td>${sel(r,'cam','Betoneira')}<td style="${cam?`background:${cam.cor};color:${tc(cam.cor)}`:''};white-space:nowrap;padding:4px">${dm?e(dm.nome)+(sit(dm,UI.data)?' ⚠ '+sit(dm,UI.data):''):'⚠ PENDENTE'}</td>${sel(r,'bomba','Bomba')}<td style="${bg};white-space:nowrap">${inp('prod',r.id,'livre',r.livre||lv,'time','style="font-weight:700"')}${r.livre?`<button class="mb" title="Voltar ao cálculo automático" onclick="autoLivre('${r.id}')">↺</button>`:''}</td><td>${inp('prod',r.id,'obs',r.obs)}</td><td class="x" onclick="del('prod','${r.id}')">×</td></tr>`}).join('');
- return`<div class="tot"><div class="o">TOTAL ${tot.toFixed(1)} m³</div><div class="y">${P.length} cargas</div><div style="background:#92D050">PRODUZIDO ${P.filter(r=>r.real).reduce((a,r)=>a+(+r.m3||0),0).toFixed(1)} m³</div></div><div style="margin-bottom:6px"><button onclick="exportProd()">📊 Baixar produção do dia (Excel)</button> <span class="hint">Conta como produzida a carga com horário em “Realizado” (use o ⏱).</span></div>
+  return`<tr data-r="${r.id}" style="${pend?'background:#F4B183':''}${ult?';box-shadow:inset 0 0 0 3px #7030A0':''}"><td class="hd" draggable="true" style="cursor:grab;white-space:nowrap" title="Arraste para mover a linha">≡<button class="mb" onclick="mv('${r.id}',-1)">▲</button><button class="mb" onclick="mv('${r.id}',1)">▼</button>${ult?'<br><span class="tg" style="background:#7030A0">🏁 ÚLTIMA CARGA</span>':''}${ob&&!ob.conf?'<br><span class="tg" style="background:#C00">SEM CONFIRMAÇÃO</span>':''}${ob&&ob.at?'<br><span class="tg" style="background:#E65100">⚠ ATENÇÃO'+(ob.atn?': '+e(ob.atn):'')+'</span>':''}</td><td>${inp('prod',r.id,'prog',r.prog,'time')}</td><td style="white-space:nowrap">${inp('prod',r.id,'real',r.real,'time')}<button class="mb" title="Pegar horário agora" onclick="agora('${r.id}')">⏱</button></td><td>${inp('prod',r.id,'ped',r.ped)}</td><td>${inp('prod',r.id,'zap',r.zap||'')}</td><td>${inp('prod',r.id,'sis',r.sis||'')}</td><td class="c" style="white-space:nowrap;font-weight:700">${car(r)}</td><td>${inp('prod',r.id,'cli',r.cli)}</td><td>${inp('prod',r.id,'loc',r.loc)}</td><td>${inp('prod',r.id,'peca',r.peca)}</td><td>${inp('prod',r.id,'vend',r.vend)}</td><td class="c" style="white-space:nowrap">${vm?brl(vm):''}</td><td class="c" style="white-space:nowrap">${tx?brl(tx):''}</td><td class="c" style="white-space:nowrap;background:#A6A6A6">${r.real&&vm?brl(m*vm):''}</td><td class="c">${tipo}</td>${sel(r,'cam','Betoneira')}<td style="${cam?`background:${cam.cor};color:${tc(cam.cor)}`:''};white-space:nowrap;padding:4px">${dm?e(dm.nome)+(sit(dm,UI.data)?' ⚠ '+sit(dm,UI.data):''):'⚠ PENDENTE'}</td>${sel(r,'bomba','Bomba')}<td style="white-space:nowrap">${dp?e(dp.nome):''}</td><td>${inp('prod',r.id,'aj1',r.aj1||aj[0]||'')}</td><td>${inp('prod',r.id,'aj2',r.aj2||aj[1]||'')}</td><td>${inp('prod',r.id,'traco',r.traco||'')}</td><td>${inp('prod',r.id,'fck',r.fck)}</td><td>${inp('prod',r.id,'brita',r.brita||'')}</td><td>${inp('prod',r.id,'slump',r.slump)}</td><td>${inp('prod',r.id,'m3',r.m3,'number')}</td><td>${inp('prod',r.id,'m3r',r.m3r||'','number')}</td><td>${inp('prod',r.id,'perc',r.perc,'number')}</td><td style="${bg};white-space:nowrap">${inp('prod',r.id,'livre',r.livre||lv,'time','style="font-weight:700"')}${r.livre?`<button class="mb" title="Voltar ao cálculo automático" onclick="autoLivre('${r.id}')">↺</button>`:''}</td><td>${inp('prod',r.id,'cim',r.cim||'','number','step="any"')}</td><td>${inp('prod',r.id,'adi',r.adi||'','number','step="any"')}</td><td>${inp('prod',r.id,'b1',r.b1||'','number','step="any"')}</td><td>${inp('prod',r.id,'b0',r.b0||'','number','step="any"')}</td><td>${inp('prod',r.id,'are',r.are||'','number','step="any"')}</td><td>${inp('prod',r.id,'po',r.po||'','number','step="any"')}</td><td>${inp('prod',r.id,'obs',r.obs)}</td><td class="x" onclick="del('prod','${r.id}')">×</td></tr>`}).join('');
+ return`<div class="tot"><div class="o">TOTAL ${tot.toFixed(1)} m³</div><div class="y">${P.length} cargas</div><div style="background:#92D050">PRODUZIDO ${P.reduce((a,r)=>a+mp(r),0).toFixed(1)} m³</div><div style="background:#9DC3E6">ACUMULADO ATÉ ONTEM ${acumAnt(UI.data).toFixed(1)} m³</div><div class="o">TOTAL GERAL ${(acumAnt(UI.data)+prodDia(UI.data)).toFixed(1)} m³</div></div><div style="margin-bottom:6px"><button onclick="exportProd()">📊 Baixar produção do dia (Excel)</button> <span class="hint">Conta como produzida a carga com horário em “Realizado” (use o ⏱).</span></div>
  ${proxima()}
  <div class="sec" style="margin-top:0">CAMINHÕES E BOMBAS — arraste um cartão para mudar a ordem de carregamento</div>
  <b style="font-size:11px">BETONEIRAS</b>${painel('Betoneira')}<b style="font-size:11px">BOMBAS</b>${painel('Bomba')}
  <div class="sec">USINA DE PLANALTINA ${UI.usina} <span style="background:#F4B183;padding:0 8px;border:1px solid #333">linha laranja = sem motorista (pendente)</span> <span style="border:3px solid #7030A0;padding:0 8px">contorno roxo = última carga da obra</span></div>
- <table><tr><th></th><th>Prog.</th><th>Realizado</th><th>Nº Pedido</th><th>Cliente</th><th>Local concretagem</th><th>Peça</th><th>Vendedor</th><th>M³</th><th>FCK</th><th>Slump</th><th>Perc.</th><th>Betoneira</th><th>Motorista</th><th>Bomba</th><th>Livre às</th><th>Balança</th><th></th></tr>${rows}</table>
+ <table class="pt"><tr><th></th><th>Prog. (Horário)</th><th>Horário Realizado</th><th>Nº Pedido</th><th>Nº Contrato do Zap</th><th>Nº Contrato Sistema</th><th>Carga</th><th>Cliente</th><th>Local concretagem</th><th>Peça</th><th>Vendedor</th><th>Valor m³</th><th>Taxa Bomba</th><th>Valor Remessa Unit.</th><th>Tipo</th><th>Betoneira</th><th>Motorista Betoneira</th><th>Bomba</th><th>Motorista Bomba</th><th>AJUDANTE</th><th>AJUDANTE</th><th>Traço</th><th>FCK</th><th>Brita</th><th>Slump</th><th>M³ Prog.</th><th>M³</th><th>Perc.</th><th>Livre às</th><th>CIMENTO</th><th>ADITIVO</th><th>BRITA 1</th><th>BRITA 0</th><th>AREIA</th><th>PÓ</th><th class="bal">Balança</th><th></th></tr>${rows}</table>
  <div style="margin-top:8px"><button onclick="gerar()">↻ Atualizar da programação</button> <span class="hint">As cargas e horários já vêm da programação. O botão atualiza só o que você não editou à mão.</span> <button onclick="novaLinha()">+ Linha</button> <button onclick="(S.man=S.man||{})[UI.data+UI.usina]=0;gerar()">Ordenar por horário</button> <span class="hint">“Livre às” = horário + 40 min carregando + 1h descarregando (ajuste em Equipe e frota > Capacidade). Edite se mudar. Fica amarelo 15 min antes e vermelho se já liberou.</span></div>`}
 function eq(){
  const D=UI.data,SIT=['Férias','Banco de hora','Atestado','Falta','Folga'],vs=t=>S.frota.filter(f=>f.tipo==t);
@@ -391,6 +448,56 @@ function eq(){
  ${dt('loc','LOCAIS E DISTÂNCIAS (clique para abrir)',`${locList()}<div class="hint">Lista de regiões (não precisa do endereço exato): escolha o Local na obra e o percurso preenche sozinho. Os tempos com ≈ são estimativas minhas: corrija com a sua experiência e o ≈ some. Na usina GO os tempos começam vazios.</div><b>Minutos saindo da usina ${UI.usina}</b><table style="width:auto"><tr><th>Local</th><th>Grupo</th><th>Min da usina</th><th></th></tr>${LL(UI.usina).map(x=>`<tr><td>${inp('loc'+UI.usina,x.id,'n',x.n)}</td><td><select data-k="loc${UI.usina}" data-i="${x.id}" data-f="g"><option value="P">Planaltina</option><option value="F" ${x.g=='F'?'selected':''}>Fora de Planaltina</option></select></td><td style="white-space:nowrap">${inp('loc'+UI.usina,x.id,'m',x.m,'number')}${x.est?' <span title="tempo estimado: confira e ajuste">≈</span>':''}</td><td class="x" onclick="del('loc${UI.usina}','${x.id}')">×</td></tr>`).join('')}</table><button onclick="S['loc'+UI.usina].push({id:uid(),n:'',g:'P',m:15});save();render()">+ Local</button><br><b>Distância entre dois locais</b> <span class="hint">(opcional: mostra a economia quando a bomba vai direto de uma obra para outra)</span><table style="width:auto"><tr><th>Local A</th><th>Local B</th><th>Min</th><th></th></tr>${S.par.map(x=>`<tr><td>${inp('par',x.id,'a',x.a,'text','list="l-loc"')}</td><td>${inp('par',x.id,'b',x.b,'text','list="l-loc"')}</td><td>${inp('par',x.id,'m',x.m,'number')}</td><td class="x" onclick="del('par','${x.id}')">×</td></tr>`).join('')}</table><button onclick="S.par.push({id:uid(),a:'',b:'',m:10});save();render()">+ Distância</button>`)}
  ${dt('out','PAZEIRO / PROGRAMAÇÃO / FÉRIAS / BANCO DE HORA (clique para abrir)',`<table><tr><th>Função</th><th>Nome</th><th>Horário</th><th></th></tr>${S.staff.map(s=>`<tr><td>${inp('staff',s.id,'cat',s.cat)}</td><td>${inp('staff',s.id,'nome',s.nome)}</td><td>${inp('staff',s.id,'hora',s.hora,'time')}</td><td class="x" onclick="del('staff','${s.id}')">×</td></tr>`).join('')}</table><button onclick="S.staff.push({id:uid(),cat:'',nome:'',hora:''});save();render()">+ Pessoa</button> <span class="hint">Nome em “Férias” ou “Banco de hora” igual ao de um motorista = ausente automático.</span>`)}
  ${dt('cap','CAPACIDADE E BACKUP (clique para abrir)',`<table style="width:auto"><tr><th>m³/h da central</th><th>Ida fixa (min)</th><th>Descarga (min)</th><th>Carregar (min) — livre às</th><th>Descarregar (min) — livre às</th></tr><tr><td><input type="number" data-cfg="mh" value="${S.cfg.mh}"></td><td><input type="number" data-cfg="ida" value="${S.cfg.ida}"></td><td><input type="number" data-cfg="desc" value="${S.cfg.desc}"></td><td><input type="number" data-cfg="lc" value="${S.cfg.lc}"></td><td><input type="number" data-cfg="ld" value="${S.cfg.ld}"></td></tr></table><table style="width:auto"><tr><th>Vazão da bomba (m³/h)</th><th>Montar (min)</th><th>Lavar (min)</th></tr><tr><td><input type="number" data-cfg="bv" value="${S.cfg.bv}"></td><td><input type="number" data-cfg="bm" value="${S.cfg.bm}"></td><td><input type="number" data-cfg="bl" value="${S.cfg.bl}"></td></tr></table><div class="hint" style="margin:4px 0">Intervalo entre cargas: ${gap()} min (8 m³ ÷ m³/h). Ciclo (cabe/apertado) = ida fixa + descarga + 2 × percurso.</div><button onclick="backup()">Baixar backup</button> <label class="hint"><button onclick="this.nextElementSibling.click()">Restaurar backup</button><input type="file" accept=".json" hidden onchange="restaurar(this.files[0])"></label>`)}`}
-function render(){if(UI.tab=='prod'&&!(S.pa&&S.pa[UI.data+UI.usina])&&!(S.prod[UI.data+UI.usina]||[]).length&&S.obras.some(o=>o.data==UI.data&&o.usina==UI.usina))gerar(true);head();$('#app').innerHTML=UI.tab=='prog'?prog():UI.tab=='prod'?prod():eq();if(UI.tab=='prog')aviso()}
-render();
+function render(){if(SB.url&&window.supabase&&!me){loginView();return}if(UI.tab=='prod'&&!(S.pa&&S.pa[UI.data+UI.usina])&&!(S.prod[UI.data+UI.usina]||[]).length&&S.obras.some(o=>o.data==UI.data&&o.usina==UI.usina))gerar(true);head();$('#app').innerHTML=UI.tab=='prog'?prog():UI.tab=='prod'?prod():eq();if(UI.tab=='prog')aviso()}
+// ---------- sincronização online (Supabase) ----------
+let sb=null,me=null,ch=null,pt=null,rt=null,SNAP={},ST='',LIM='',OM={};
+const ORD=['prod','mots','frota'],KV=['cfg','rod','esc','asg','ov','man','pa','acum','rst','cf2','clr1','locSeed'];
+function sync(t){ST=t;const b=$('#sy');if(b)b.textContent=t}
+function sbar(){return me?`<span style="margin-left:12px;font-size:12px"><span id="sy">${e(ST)}</span> · ${e(me.email)} <button onclick="sair()">Sair</button></span>`:''}
+function items(){
+ const m={},put=(kind,id,data,dia)=>m[kind+':'+id]={kind,id,data,dia};
+ ['obras','frota','mots','staff','locDF','locGO','par'].forEach(k=>(S[k]||[]).forEach((x,i)=>{const o=ORD.includes(k);if(o)OM[k+':'+x.id]=i;put(k,x.id,o?{d:x,o:i}:{d:x},k=='obras'?x.data:null)}));
+ Object.entries(S.prod||{}).forEach(([k,a])=>a.forEach((r,i)=>{OM['prod:'+r.id]=i;put('prod',r.id,{d:r,k,o:i},k.slice(0,10))}));
+ KV.forEach(k=>{if(S[k]!==undefined)put('kv',k,{v:S[k]},null)});
+ return m}
+function aplica(kind,id,data,del){
+ if(kind=='kv'){if(del)delete S[id];else S[id]=data.v;return}
+ const key=kind+':'+id,srt=a=>a.sort((x,y)=>(OM[kind+':'+x.id]??1e9)-(OM[kind+':'+y.id]??1e9));
+ if(kind=='prod'){for(const k in S.prod){const i=S.prod[k].findIndex(r=>r.id==id);if(i>=0)S.prod[k].splice(i,1)}
+  if(del){delete OM[key];return}OM[key]=data.o;const a=S.prod[data.k]=S.prod[data.k]||[];a.push(data.d);srt(a);return}
+ const a=S[kind]=S[kind]||[],i=a.findIndex(x=>x.id==id);
+ if(del){if(i>=0)a.splice(i,1);delete OM[key];return}
+ if(i>=0)a[i]=data.d;else a.push(data.d);
+ if(ORD.includes(kind)){OM[key]=data.o;srt(a)}}
+function push(now){if(!sb||!me)return;clearTimeout(pt);if(now)doPush();else pt=setTimeout(doPush,700)}
+async function doPush(){
+ const cur=items(),up=[],del={};
+ for(const k in cur)if(SNAP[k]!==JSON.stringify(cur[k].data))up.push(cur[k]);
+ for(const k in SNAP)if(!(k in cur)){const i=k.indexOf(':');(del[k.slice(0,i)]=del[k.slice(0,i)]||[]).push(k.slice(i+1))}
+ if(!up.length&&!Object.keys(del).length)return;
+ sync('salvando…');
+ const falha=m=>{sync('sem conexão ('+m+') — tentando de novo');clearTimeout(pt);pt=setTimeout(doPush,5000)};
+ for(let i=0;i<up.length;i+=500){const{error}=await sb.from('items').upsert(up.slice(i,i+500).map(u=>({kind:u.kind,id:u.id,data:u.data,dia:u.dia||null})),{onConflict:'kind,id'});if(error)return falha(error.message)}
+ for(const kd in del){const{error}=await sb.from('items').delete().eq('kind',kd).in('id',del[kd]);if(error)return falha(error.message)}
+ up.forEach(u=>SNAP[u.kind+':'+u.id]=JSON.stringify(u.data));for(const kd in del)del[kd].forEach(id=>delete SNAP[kd+':'+id]);
+ sync('salvo')}
+async function carrega(){
+ sync('carregando…');LIM=dstr(new Date(Date.now()-120*864e5));const rows=[];
+ for(let a=0;;a+=1000){const{data,error}=await sb.from('items').select('kind,id,data,dia').or('dia.is.null,dia.gte.'+LIM).order('kind').order('id').range(a,a+999);if(error){sync('erro: '+error.message);render();return}rows.push(...data);if(data.length<1000)break}
+ if(rows.length){S={cfg:{},frota:[],mots:[],staff:[],locDF:[],locGO:[],par:[],obras:[],prod:{},acum:{}};OM={};rows.forEach(r=>aplica(r.kind,r.id,r.data,false));mig();try{localStorage.setItem(K,JSON.stringify(S))}catch(_){}SNAP={};const c=items();for(const k in c)SNAP[k]=JSON.stringify(c[k].data)}
+ else{SNAP={};await doPush()}
+ assina();sync('online');render()}
+function assina(){
+ if(ch)sb.removeChannel(ch);
+ ch=sb.channel('items').on('postgres_changes',{event:'*',schema:'public',table:'items'},p=>{
+  const r=p.eventType=='DELETE'?p.old:p.new,key=r.kind+':'+r.id;
+  if(p.eventType=='DELETE'){if(!(key in SNAP))return;aplica(r.kind,r.id,null,true);delete SNAP[key]}
+  else{const x=JSON.stringify(r.data);if(SNAP[key]===x||(r.dia&&r.dia<LIM))return;aplica(r.kind,r.id,r.data,false);SNAP[key]=x}
+  try{localStorage.setItem(K,JSON.stringify(S))}catch(_){}
+  clearTimeout(rt);rt=setTimeout(()=>{mig();rr()},150)}).subscribe(st=>{if(st=='SUBSCRIBED')sync('online')})}
+function loginView(){$('#ban').textContent='USINA — acesso restrito';$('#bar').innerHTML='';$('#app').innerHTML=`<div style="max-width:320px;margin:40px auto;padding:16px;border:2px solid #333;background:#fff"><h3 style="margin:0 0 10px">Entrar</h3><input id="lg-e" type="email" placeholder="e-mail" style="width:100%;margin-bottom:6px"><input id="lg-s" type="password" placeholder="senha" style="width:100%;margin-bottom:6px" onkeydown="if(event.key=='Enter')entrar()"><button onclick="entrar()" style="width:100%;font-weight:700">Entrar</button><div id="lg-m" style="color:#C00;margin-top:6px"></div></div>`}
+async function entrar(){const{data,error}=await sb.auth.signInWithPassword({email:$('#lg-e').value.trim(),password:$('#lg-s').value});if(error){$('#lg-m').textContent='E-mail ou senha incorretos.';return}me=data.user;carrega()}
+async function sair(){await sb.auth.signOut();me=null;if(ch){sb.removeChannel(ch);ch=null}render()}
+function start(){if(SB.url&&window.supabase){sb=window.supabase.createClient(SB.url,SB.key);sb.auth.getSession().then(({data})=>{if(data.session){me=data.session.user;carrega()}else render()})}else render()}
+start();
 </script></body></html>
