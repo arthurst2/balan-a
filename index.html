@@ -3,59 +3,93 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Usina – Programação e Produção</title>
 <style>
-:root{--az:#4472C4;--cz:#D9D9D9;--vd:#00B050;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--ink:#1f2937;--mut:#6b7280;--bg:#f3f4f6;--line:#e5e7eb;--pri:#2563eb;--ok:#16a34a;--warn:#d97706;--bad:#dc2626;--pur:#7c3aed;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
-body{margin:0;background:#E7E6E6;color:#000;font:13px Arial,Helvetica,sans-serif}
-.ban{background:#FFFF00;text-align:center;font-weight:700;font-size:15px;padding:5px;border-bottom:1px solid #999}
-.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--az);color:#fff;padding:6px 8px;font-weight:700}
-.bar button,.bar input{font:inherit}
-button{cursor:pointer;border:1px solid #666;background:#f2f2f2;padding:4px 10px;font-weight:700}
-button.on{background:#FFFF00}
-.tab.on{background:#FFFF00}
-.pad{padding:8px;overflow-x:auto}
-.sec{background:var(--vd);color:#000;font-weight:700;text-align:center;padding:3px;border:1px solid #333;margin-top:10px}
-.sec.gap{margin-top:22px}
-table{border-collapse:collapse;width:100%;background:var(--cz)}
-th{background:var(--az);color:#fff;border:1px solid #333;padding:4px;font-size:12px;white-space:nowrap}
-td{border:1px solid #888;padding:0}
-td input,td select{width:100%;border:0;background:transparent;font:inherit;padding:4px;min-width:44px}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.ban{background:#fff;padding:12px 16px 2px;font-weight:700;font-size:19px}
+.ban .mut{color:var(--mut);font-weight:500;font-size:14px;margin-left:8px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#fff;padding:8px 16px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+button{font:inherit;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:var(--ink);padding:7px 14px;border-radius:8px;font-weight:600}
+button:hover{background:#f9fafb}
+button.pri{background:var(--pri);border-color:var(--pri);color:#fff}button.pri:hover{background:#1d4ed8}
+button.bad{color:var(--bad);border-color:#fecaca}
+.tab{border:0;background:transparent;color:var(--mut);padding:8px 14px;border-radius:999px}
+.tab b{display:inline-block;width:22px;height:22px;line-height:22px;border-radius:50%;background:#e5e7eb;color:var(--ink);text-align:center;margin-right:4px;font-size:12px}
+.tab.on{background:#dbeafe;color:#1d4ed8}.tab.on b{background:var(--pri);color:#fff}
+.seg{display:inline-flex}.seg button,.seg input{border-radius:0;margin-left:-1px}.seg>:first-child{border-radius:8px 0 0 8px}.seg>:last-child{border-radius:0 8px 8px 0}
+.seg button.on{background:#dbeafe;border-color:#93c5fd;color:#1d4ed8;position:relative}
+.seg input{font:inherit;border:1px solid #d1d5db;padding:6px 8px}
+.pad{max-width:1240px;margin:0 auto;padding:14px 16px 60px;overflow-x:auto}
+.tip{background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;border-radius:10px;padding:9px 12px;margin:0 0 12px;font-size:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.card.hl{border-color:#93c5fd;background:#f8fbff}
+.ct{font-weight:700;font-size:16px;margin-bottom:8px}
+.sec{font-weight:700;font-size:16px;margin:22px 0 8px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.sec.gap{margin-top:26px}
+details>summary{cursor:pointer;font-weight:600;color:#374151;padding:8px 2px}
+details>summary.sec{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0 0;font-size:15px}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mut);min-width:0}
+.fld input,.fld select{padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font:inherit;color:var(--ink);background:#fff;width:100%}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:8px 0}
+.chk{display:inline-flex;align-items:center;gap:6px;margin:6px 14px 6px 0;font-weight:600}
+.chk.ok{color:var(--ok)}.chk.wait{color:var(--warn)}
+.stline{margin:8px 0;min-height:30px}
+table{border-collapse:separate;border-spacing:0;width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th{background:#f9fafb;color:var(--mut);font-size:12px;font-weight:700;text-align:left;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{border-bottom:1px solid var(--line);padding:2px 4px;vertical-align:middle}
+tr:last-child>td{border-bottom:0}
+td input,td select{width:100%;border:1px solid transparent;border-radius:6px;background:transparent;font:inherit;padding:6px 8px;min-width:46px;color:inherit}
+td input:focus,td select:focus,.fld input:focus,.fld select:focus{outline:2px solid #93c5fd;background:#fff}
 td input[type=checkbox]{width:auto}
-td.c{text-align:center;padding:3px}
-tr.nf td{background:#FFF2CC}
-.sem{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
-.dia{flex:1;min-width:84px;border:1px solid #333;text-align:center;padding:4px;cursor:pointer;background:var(--cz)}
-.dia.on{outline:3px solid #000}
-.dia.g{border-bottom:6px solid #00B050}.dia.y{border-bottom:6px solid #FFC000}.dia.r{border-bottom:6px solid #FF0000}
+td.c{text-align:center}
+td input[data-t]{width:66px;min-width:66px;text-align:center}
+tr.pend>td{background:#fff7ed}tr.done>td{background:#f0fdf4}tr.ult>td{background:#f5f3ff}
+tr.det>td{background:#fafafa;padding:10px 12px}
+.ob{padding:12px 14px;border-left:5px solid #22c55e}.ob.aguarda{border-left-color:#f59e0b;background:#fffdf7}.ob.atenc{border-color:#fca5a5;border-left-color:var(--bad)}
+.obh{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.hora{font-size:24px;font-weight:700;min-width:70px}
+.obm{flex:1;min-width:200px}.obc{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.atn{color:var(--bad);font-weight:600;margin-top:2px}
+.acts{display:flex;gap:8px;margin-top:6px}
+.sem{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.dia{flex:1;min-width:92px;border:1px solid var(--line);border-radius:10px;text-align:center;padding:6px 4px;cursor:pointer;background:#fff;font-size:13px}
+.dia.on{border-color:var(--pri);box-shadow:0 0 0 2px #bfdbfe}
+.dia.g{border-bottom:4px solid #22c55e}.dia.y{border-bottom:4px solid #f59e0b}.dia.r{border-bottom:4px solid var(--bad)}
 .tl{display:flex;gap:2px;margin-bottom:4px}
-.sl{flex:1;min-width:26px;text-align:center;border:1px solid #333;padding:2px 0;font-size:12px}
+.sl{flex:1;min-width:26px;text-align:center;border-radius:6px;padding:2px 0;font-size:12px}
 .sl b{display:block;height:14px;font-size:10px}.sl span{font-weight:700;font-size:15px;display:block}.sl small{font-size:10px}
-.sl.g{background:#92D050}.sl.y{background:#FFC000}.sl.r{background:#FF0000;color:#fff}
-.gap{flex:0 0 18px;background:transparent}
-i.gap{border:0}
-.badge{display:inline-block;padding:3px 10px;font-weight:700;border:1px solid #333}
-.badge.cabe{background:#92D050}.badge.apertado{background:#FFC000}.badge.cheio{background:#FF0000;color:#fff}
-.tot{display:flex;flex-wrap:wrap;gap:0;margin-bottom:6px}
-.tot div{border:1px solid #333;padding:4px 10px;background:#9DC3E6;font-weight:700}
-.tot .o{background:#ED7D31}.tot .y{background:#FFFF00}
-.tot input{width:90px;font:inherit;font-weight:700}
+.sl.g{background:#dcfce7}.sl.y{background:#fef3c7}.sl.r{background:#fee2e2;color:#991b1b}
+i.gap{flex:0 0 12px;border:0}
+.badge{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:700}
+.badge.cabe{background:#dcfce7;color:#166534}.badge.apertado{background:#fef3c7;color:#92400e}.badge.cheio{background:#fee2e2;color:#991b1b}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 12px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px}.kpi small{color:var(--mut);display:block}.kpi b{font-size:22px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.pill{border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;background:#fef3c7;color:#92400e}.pill.ok{background:#dcfce7;color:#166534}
 .fila{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
-.chip{border:1px solid #000;padding:3px 8px;font-weight:700;cursor:grab;user-select:none}
-.leg{font-size:11px;color:#333;margin:2px 0 6px}
-.x{color:#a00;font-weight:700;cursor:pointer;text-align:center;padding:0 6px}
-.hint{font-size:11px;margin-left:6px}
-td input[data-t]{width:62px;min-width:62px;text-align:center}
-.pn{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px;margin-bottom:8px}
-.pc{border:1px solid #333;background:#F2F2F2;padding:4px;min-width:0}
-.ph{font-weight:700;padding:3px;text-align:center;margin-bottom:4px;border:1px solid #333}
-.pc .chip{display:block;margin-bottom:3px}
-.mb{padding:0 5px;margin:0 2px;font-size:13px;line-height:22px}
-.tg{display:inline-block;color:#fff;padding:1px 5px;font-size:10px;font-weight:700;white-space:nowrap;margin-top:2px}
-.pt tr{background:#D9D9D9}.pt td{background:inherit}.pt th{background:#9DC3E6;color:#000;border:2px solid #000;font-weight:700}.pt th.bal{background:#ED7D31}
+.chip{border-radius:8px;padding:4px 9px;font-weight:600;cursor:grab;user-select:none;margin-bottom:4px;border:1px solid rgba(0,0,0,.15)}
+.leg{font-size:12px;color:var(--mut)}
+.x{color:var(--bad);font-weight:700;cursor:pointer;text-align:center;padding:0 6px}
+.hint{font-size:12px;color:var(--mut)}
+.pn{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:8px 0}
+.pc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;min-width:0}
+.ph{font-weight:700;padding:4px 8px;border-radius:8px;margin-bottom:6px}
+.pc .chip{display:block}
+.mb{padding:2px 8px;margin:0 2px;font-size:12px;border-radius:6px}
+.tg{display:inline-block;color:#fff;padding:1px 7px;font-size:11px;font-weight:700;white-space:nowrap;margin:2px 4px 0 0;border-radius:999px}
+.late{background:#fee2e2!important;color:#991b1b}.soon{background:#fef3c7!important}
+.hd{cursor:grab;color:var(--mut);white-space:nowrap;text-align:center}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:50}
+.ovc{background:#fff;border-radius:14px;max-width:560px;padding:20px 22px;margin:16px}
+.ovc li{margin:8px 0}
+details>summary.sec::after{content:'▾';color:var(--mut)}
+details[open]>summary.sec::after{content:'▴'}
 </style></head><body>
 <div class="ban" id="ban"></div>
 <div class="bar" id="bar"></div>
 <div class="pad" id="app"></div>
+<div id="ov"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.js"></script>
 <script>
@@ -117,7 +151,7 @@ function readNF(){const g=i=>document.getElementById('nf-'+i);return{hora:nt(g('
 function aviso(){
  const el=$('#st');if(!el)return;const o=readNF();UI.nf=o;
  if(!o.m3){el.innerHTML='';return}
- const s=status(UI.data,UI.usina,o);let h=`<span class="badge ${s}">${s=='cabe'?'Cabe':s=='apertado'?'Apertado':'Cheio'}</span>`;
+ const s=status(UI.data,UI.usina,o);let h=`<span class="badge ${s}">${s=='cabe'?'✔ Cabe':s=='apertado'?'⚠ No limite':'✖ Sem caminhão livre'}</span>`;
  if(s!='cabe'){const g=sugere(UI.data,UI.usina,o);h+=g?` <span class="hint">Horário livre mais próximo: <b>${g}</b> <button onclick="usaH('${g}')">Usar</button></span>`:' <span class="hint">Sem horário livre neste dia.</span>'}
  const p=o.perc<=20?'Perto':o.perc<=40?'Médio':'Longe';
  el.innerHTML=h+` <span class="hint">${p} da usina · ciclo ${Math.floor(cic(o)/60)}h${pad(cic(o)%60)}</span>`}
@@ -148,10 +182,10 @@ document.addEventListener('drop',ev=>{const t=ev.target.closest('[data-d]');if(!
 function aplicar(id,f,v){const r=find('prod',id);if(!r)return;r[f]=v;save();render()}
 function aplicarObra(oid,v){(S.prod[UI.data+UI.usina]||[]).filter(r=>r.oid==oid).forEach(r=>r.bomba=v);save();render()}
 setInterval(()=>{const a=document.activeElement;if(UI.tab=='prod'&&!(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)))rr()},60000);
-function proxima(){
+function proxima(raw){
  const D=UI.data,us=UI.usina,P=S.prod[D+us]||[],now=dstr(new Date())==D?new Date().getHours()*60+new Date().getMinutes():-1;
- if(!P.length)return'';
- const lc=S.cfg.lc,ld=S.cfg.ld,hh=m2t,rl=P.filter(r=>r.real&&r.prog).map(r=>t2m(r.real)-t2m(r.prog)).slice(-3),atr=rl.length?Math.max(0,Math.round(rl.reduce((a,b)=>a+b,0)/rl.length)):0,da=now>=0?atr:0;
+ if(!P.length)return raw?{L:[],pb:[]}:'';
+ const lc=S.cfg.lc,ld=S.cfg.ld,hh=m2t,rl=P.filter(r=>r.real&&r.prog).map(r=>t2m(r.real)-t2m(r.prog)).slice(-3),atr=rl.length?Math.min(90,Math.max(0,Math.round(rl.reduce((a,b)=>a+b,0)/rl.length))):0,da=now>=0?atr:0;
  const nome=t=>((S.frota.find(x=>x.id==t.id)||{}).cod||'?')+' '+String(t.d.nome||'').split('/')[0];
  const T=ordem('Betoneira',D).filter(d=>!sit(d,D)).map(d=>({d,id:vid(d,D),en:t2m(ent(d,D)),livre:0,n:0})).filter(t=>t.id);
  P.filter(r=>r.real&&r.cam).forEach(r=>{const t=T.find(x=>x.id==r.cam);if(t){t.livre=Math.max(t.livre,t2m(livreDe(r)));t.n++}});
@@ -170,12 +204,13 @@ function proxima(){
   else if(pend){
    const op=Bs.map(q=>{const dir=q.ult&&q.pg&&gO?dd(q.pg,gO):null,via=q.ult?(+q.ult.perc||0)+(+o.perc||0):(+o.perc||0),tf=dir??via,volta=q.ult?(+q.ult.perc||0):0;return{p:q,tf,dir,eco:dir!=null?volta+(+o.perc||0)-dir:0,atraso:Math.max(0,q.livre+tf-bi)}}).sort((x,y)=>x.atraso-y.atraso||y.eco-x.eco||x.tf-y.tf)[0];
    if(!op)pb.push({m:`⛔ Obra ${e(o.cliente)}: nenhuma bomba disponível`});
-   else{p=op.p;pb.push({m:`🚜 Obra <b>${e(o.cliente)}</b> (${e(o.hora)}): mande a bomba <b>${e(nm(p))}</b> — ${op.dir!=null&&op.eco>0?'vem direto da obra '+e(p.ult.cliente||p.ult.local)+' ('+op.dir+' min), economiza ~'+op.eco+' min':'sai da usina ('+op.tf+' min)'}${op.atraso>0?' · ⚠ chega ~'+op.atraso+' min atrasada':''} <button class="mb" onclick="aplicarObra('${o.id}','${p.f.id}')">Usar</button>`})}}
+   else{p=op.p;pb.push({m:`🚜 Obra <b>${e(o.cliente)}</b> (${e(o.hora)}): mande a bomba <b>${e(nm(p))}</b> — ${op.dir!=null&&op.eco>0?'vem direto da obra '+e(p.ult.cliente||p.ult.local)+' ('+op.dir+' min), economiza ~'+op.eco+' min':'sai da usina ('+op.tf+' min)'}${op.atraso>0?' · ⚠ chega ~'+op.atraso+' min atrasada':''} <button class="mb" onclick="aplicarObra('${o.id}','${p.f.id}')">Usar</button>`,oid:o.id,pid:p.f.id})}}
   if(p){p.livre=bf;p.ult=o;p.pg=gO}});
  const UL=ultimas(P),fl=r=>{const ob=S.obras.find(z=>z.id==r.oid);return(UL.has(r.id)?' · 🏁 <b>ÚLTIMA CARGA</b>':'')+(ob&&!ob.conf?' · ⛔ sem confirmação do vendedor':'')+(ob&&ob.at?' · ⚠ '+e(ob.atn||'atenção'):'')+(ob&&ob.end?' · 📍 '+e(ob.end):'')};
  const it=L.slice(0,6).map(x=>{const r=x.r,h=`<b>${e(r.cli)||'(sem cliente)'}</b> · ${e(r.prog)}${da&&x.st>t2m(r.prog)?' (~'+hh(x.st)+')':''} · ${+r.m3||0} m³${fl(r)} → `,u=x.esc&&x.tp!='ok'&&x.tp!='nada'?` <button class="mb" onclick="aplicar('${r.id}','cam','${x.esc.id}')">Usar</button>`:'',cn=x.cur?nome(x.cur):((S.frota.find(v=>v.id==r.cam)||{}).cod||'')+' (sem motorista/ausente)';
   return'<div style="margin:4px 0">'+h+(x.tp=='ok'?'✔ '+e(nome(x.esc))+' está certa':x.tp=='mande'?'mande <b>'+e(nome(x.esc))+'</b> ('+(x.n0?'livre desde '+hh(x.liv0):'ainda não usada')+')'+u:x.tp=='troque'?'⚠ '+e(cn)+' não está livre — troque por <b>'+e(nome(x.esc))+'</b>'+u:x.tp=='espera'?'⏳ nenhuma betoneira livre às '+hh(x.st)+'; a primeira é <b>'+e(nome(x.esc))+'</b> às '+hh(x.liv0)+' (+'+Math.max(0,x.liv0-x.st)+' min)'+u:'⛔ sem betoneira com motorista presente')+'</div>'}).join('');
- return`<div style="border:2px solid #9DC3E6;background:#F5FAFF;padding:8px;margin-bottom:8px"><b>💡 O que fazer agora</b> <span class="hint">${now>=0?'agora '+hh(now)+' · ':''}atraso médio recente: ${atr} min · recalcula a cada lançamento e a cada minuto</span>${it||'<div style="margin:4px 0">✔ Todas as cargas já saíram.</div>'}${L.length>6?'<div class="hint">+ '+(L.length-6)+' cargas depois destas</div>':''}${pb.map(x=>'<div style="margin:4px 0">'+x.m+'</div>').join('')}</div>`}
+ if(raw)return{L,pb};
+ return`<div class="card hl"><div class="ct">💡 O que fazer agora</div> <span class="hint">${now>=0?'agora '+hh(now)+' · ':''}atraso médio recente: ${atr} min · recalcula a cada lançamento e a cada minuto</span>${it||'<div style="margin:4px 0">✔ Todas as cargas já saíram.</div>'}${L.length>6?'<div class="hint">+ '+(L.length-6)+' cargas depois destas</div>':''}${pb.map(x=>'<div style="margin:4px 0">'+x.m+'</div>').join('')}</div>`}
 const mp=r=>r.real?(+(r.m3r||r.m3)||0):0;
 function acumAnt(D){let t=0;for(const k in S.prod){const d=k.slice(0,10);if(d.slice(0,7)==D.slice(0,7)&&d<D)S.prod[k].forEach(r=>t+=mp(r))}return t}
 function prodDia(D){let t=0;['DF','GO'].forEach(u=>(S.prod[D+u]||[]).forEach(r=>t+=mp(r)));return t}
@@ -321,10 +356,10 @@ function keyOf(el){if(!el||el==document.body)return null;if(el.id)return'#'+el.i
 function rr(){const p=$('#app'),sl=p.scrollLeft,sy=scrollY,k=keyOf(document.activeElement);render();$('#app').scrollLeft=sl;scrollTo(0,sy);if(k){const n=document.querySelector(k);if(n){n.focus();if(n.select&&n.type!='checkbox')try{n.select()}catch(_){}}}}
 function head(){
  const d=pd(UI.data);
- $('#ban').textContent=`USINA DE PLANALTINA ${UI.usina} — ${DIAS[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
- $('#bar').innerHTML=['prog:Programação','prod:Produção do dia','eq:Equipe e frota'].map(x=>{const[a,b]=x.split(':');return`<button class="tab ${UI.tab==a?'on':''}" onclick="UI.tab='${a}';render()">${b}</button>`}).join('')+
- `<span style="margin-left:12px">Usina:</span><button class="${UI.usina=='DF'?'on':''}" onclick="UI.usina='DF';render()">DF</button><button class="${UI.usina=='GO'?'on':''}" onclick="UI.usina='GO';render()">GO</button>`+
- `<span style="margin-left:12px"></span><button onclick="shift(-1)">◀</button><input type="date" value="${UI.data}" onchange="setD(this.value)"><button onclick="shift(1)">▶</button><button onclick="setD(dstr(new Date()))">Hoje</button>`+sbar()}
+ $('#ban').innerHTML=`Usina de Planaltina ${UI.usina}<span class="mut">${DIAS[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}</span>`;
+ $('#bar').innerHTML=[['prog','1','Programar obras'],['eq','2','Equipe do dia'],['prod','3','Produção']].map(([a,n,t])=>`<button class="tab ${UI.tab==a?'on':''}" onclick="UI.tab='${a}';render()"><b>${n}</b>${t}</button>`).join('')+
+ `<span class="seg"><button class="${UI.usina=='DF'?'on':''}" onclick="UI.usina='DF';render()">Usina DF</button><button class="${UI.usina=='GO'?'on':''}" onclick="UI.usina='GO';render()">Usina GO</button></span>`+
+ `<span class="seg"><button onclick="shift(-1)">◀</button><input type="date" value="${UI.data}" onchange="setD(this.value)"><button onclick="shift(1)">▶</button></span><button onclick="setD(dstr(new Date()))">Hoje</button><span style="flex:1"></span><button onclick="ajuda()">? Ajuda</button>`+sbar()}
 function semana(){
  const d=pd(UI.data),dow=d.getDay()||7;d.setDate(d.getDate()-dow+1);let h='<div class="sem">';
  for(let i=0;i<7;i++){const s=dstr(d),os=S.obras.filter(o=>o.data==s&&o.usina==UI.usina),m3=os.reduce((a,o)=>a+(+o.m3||0),0),u=uso(s,UI.usina);
@@ -378,19 +413,27 @@ function sugestao(){
  if(!UI.sug)return b;
  const P=plano();if(!P.length)return b+'<div class="hint">Lance obras neste dia para ver a sugestão.</div>';
  return b+`<div style="border:2px solid #9DC3E6;padding:8px;margin-bottom:8px;background:#F5FAFF">`+P.map((x,i)=>`<div style="margin:6px 0"><b>${i+1}º ${e(x.o.hora)} · ${e(x.o.cliente)||'(sem cliente)'}</b> — ${+x.o.m3||0} m³ · ${x.o.bomba?'bombeada':'sem bomba'} · ${+x.o.perc||0} min da usina<br>Betoneiras: ${x.aloc} de ${x.need} · termina ~${m2t(x.fim)}${x.bomba?'<br>🚜 '+e(x.bomba):''}${x.av.map(a=>'<br><span style="color:#C00;font-weight:700">⚠ '+e(a)+'</span>').join('')}</div>`).join('')+`</div><div class="hint">Ordem: horário combinado; no mesmo horário, bombeada primeiro, depois maior m³ e menor distância. Betoneiras: ${disp('Betoneira')} ativas · bombas: ${disp('Bomba')} ativas. Cada obra recebe só os caminhões que precisa; os demais ficam para as outras obras do mesmo horário.</div>`}
-function rowsObras(list){
- return list.map(o=>`<tr style="${o.at?'box-shadow:inset 0 0 0 3px #C00;':''}${o.conf?'':'background:#FFF2CC'}"><td>${inp('obras',o.id,'hora',o.hora,'time')}</td><td>${inp('obras',o.id,'cliente',o.cliente)}</td><td>${inp('obras',o.id,'vendedor',o.vendedor)}</td><td>${locSel('','data-k="obras" data-i="'+o.id+'" data-f="local"',o.local,o.usina)}</td><td>${inp('obras',o.id,'end',o.end||'','text','style="min-width:150px"')}</td><td>${inp('obras',o.id,'peca',o.peca)}</td><td>${inp('obras',o.id,'fck',o.fck)}</td><td>${inp('obras',o.id,'slump',o.slump)}</td><td>${inp('obras',o.id,'m3',o.m3,'number')}</td><td>${inp('obras',o.id,'vm3',o.vm3,'number','step="any"')}</td><td>${inp('obras',o.id,'perc',o.perc,'number')}</td><td class="c"><input type="checkbox" data-k="obras" data-i="${o.id}" data-f="bomba" ${o.bomba?'checked':''}></td><td>${inp('obras',o.id,'taxa',o.taxa,'number','step="any"')}</td><td class="c" style="white-space:nowrap;font-weight:700">${brl(tv(o))}</td><td class="c"><input type="checkbox" data-k="obras" data-i="${o.id}" data-f="conf" ${o.conf?'checked':''}></td><td style="white-space:nowrap"><button class="mb" style="${o.at?'background:#C00;color:#fff':''}" title="Marcar como obra de atenção" onclick="togAt('${o.id}')">⚠</button>${o.at?inp('obras',o.id,'atn',o.atn||'','text','placeholder="o que lembrar?" style="min-width:140px"'):''}</td><td class="x" onclick="del('obras','${o.id}')">×</td></tr>`).join('')}
+const lf=(lab,h)=>`<label class="fld"><span>${lab}</span>${h}</label>`;
+function cardsObras(list){
+ return list.map(o=>{const open=UI.op['o'+o.id],I=(f,t,x)=>inp('obras',o.id,f,o[f]===undefined?'':o[f],t||'text',x||'');
+  return`<div class="card ob ${o.conf?'':'aguarda'} ${o.at?'atenc':''}"><div class="obh"><div class="hora">${e(o.hora)}</div><div class="obm"><b>${e(o.cliente)||'(sem cliente)'}</b><div class="hint">${e(o.local)||'sem local'} · ${+o.m3||0} m³ · ${o.bomba?'com bomba':'sem bomba'} · ${+o.perc||0} min da usina${+o.vm3?' · '+brl(tv(o)):''}</div>${o.at?'<div class="atn">⚠ Atenção'+(o.atn?': '+e(o.atn):'')+'</div>':''}</div>
+  <div class="obc"><label class="chk ${o.conf?'ok':'wait'}"><input type="checkbox" data-k="obras" data-i="${o.id}" data-f="conf" ${o.conf?'checked':''}> ${o.conf?'Vendedor confirmou':'Aguardando vendedor'}</label><button class="mb" style="${o.at?'background:#dc2626;color:#fff':''}" title="Obra fora do padrão: marcar atenção" onclick="togAt('${o.id}')">⚠ Atenção</button><button class="mb" onclick="UI.op['o${o.id}']=!UI.op['o${o.id}'];render()">${open?'Fechar':'Editar'}</button></div></div>
+  ${open?`<div class="grid">${lf('Horário',I('hora','time'))}${lf('Cliente',I('cliente'))}${lf('Vendedor',I('vendedor'))}${lf('Local',locSel('','data-k="obras" data-i="'+o.id+'" data-f="local"',o.local,o.usina))}${lf('Endereço / referência',I('end'))}${lf('Peça',I('peca'))}${lf('FCK',I('fck'))}${lf('Slump',I('slump'))}${lf('Metros cúbicos',I('m3','number'))}${lf('Valor do m³ (R$)',I('vm3','number','step="any"'))}${lf('Percurso (min)',I('perc','number'))}${lf('Taxa da bomba (R$)',I('taxa','number','step="any"'))}${o.at?lf('O que lembrar (atenção)',I('atn')):''}</div><label class="chk"><input type="checkbox" data-k="obras" data-i="${o.id}" data-f="bomba" ${o.bomba?'checked':''}> Precisa de bomba</label><div class="acts"><button onclick="repetirObra('${o.id}')">Repetir no dia seguinte</button><button class="bad" onclick="if(confirm('Apagar esta obra?'))del('obras','${o.id}')">Apagar obra</button></div>`:''}</div>`}).join('')}
+function repetirObra(id){const o=find('obras',id);if(!o)return;const d=pd(o.data);d.setDate(d.getDate()+1);const c={...o,id:uid(),data:dstr(d),conf:false,at:false,atn:''};S.obras.push(c);save();setD(c.data)}
 function prog(){
  const os=S.obras.filter(o=>o.data==UI.data&&o.usina==UI.usina).sort((a,b)=>t2m(a.hora)-t2m(b.hora));
  const m=os.filter(o=>t2m(o.hora)<720),t=os.filter(o=>t2m(o.hora)>=720),sum=l=>l.reduce((a,o)=>a+(+o.m3||0),0),n=UI.nf;
- const th='<tr><th>Hora</th><th>Cliente</th><th>Vendedor</th><th>Local</th><th>Endereço / referência da obra</th><th>Peça</th><th>FCK</th><th>Slump</th><th>m³</th><th>Valor m³ (R$)</th><th>Percurso (min)</th><th>Bomba</th><th>Taxa bomba (R$)</th><th>Total (R$)</th><th>✅ Vendedor confirmou?</th><th>⚠ Atenção</th><th></th></tr>';
  const dl=a=>'<datalist id="'+a[0]+'">'+[...new Set(S.obras.map(o=>o[a[1]]).filter(Boolean))].map(v=>`<option value="${e(v)}">`).join('')+'</datalist>';
- const f=(id,v,t='text',x='')=>`<td><input id="nf-${id}" type="${t=='time'?'text':t}" ${t=='time'?'data-t="1" inputmode="numeric" maxlength="5"':''} value="${e(v)}" ${x}></td>`;
- return semana()+timeline()+sugestao()+
- `<table><tr><th colspan="17" style="background:#9DC3E6;color:#000">NOVA OBRA — confira o aviso antes de confirmar</th></tr>${th}<tr class="nf">${f('hora',n.hora,'time')}${f('cliente',n.cliente,'text','list="l-cli"')}${f('vendedor',n.vendedor,'text','list="l-ven"')}<td>${locSel('nf-local','',n.local)}</td>${f('end',n.end||'')}${f('peca',n.peca)}${f('fck',n.fck)}${f('slump',n.slump)}${f('m3',n.m3,'number')}${f('vm3',n.vm3,'number','step="any"')}${f('perc',n.perc,'number')}<td class="c"><input id="nf-bomba" type="checkbox" ${n.bomba?'checked':''}></td>${f('taxa',n.taxa,'number','step="any"')}<td></td><td class="c"><input id="nf-conf" type="checkbox" ${n.conf?'checked':''}></td><td class="c"><input id="nf-at" type="checkbox" ${n.at?'checked':''}></td><td class="c"><button onclick="addObra()">Lançar</button></td></tr></table>${dl(['l-cli','cliente'])}${dl(['l-ven','vendedor'])}${locList()}
- <div style="margin:6px 0" id="st"></div>
- <div class="sec">MANHÃ — ${sum(m)} m³ · ${brl(m.reduce((a,o)=>a+tv(o),0))}</div><table>${th}${rowsObras(m)||''}</table>
- <div class="sec gap">TARDE — ${sum(t)} m³ · ${brl(t.reduce((a,o)=>a+tv(o),0))}</div><table>${th}${rowsObras(t)||''}</table>`}
+ const ff=(id,lab,v,t='text',x='')=>lf(lab,`<input id="nf-${id}" type="${t=='time'?'text':t}" ${t=='time'?'data-t="1" inputmode="numeric" maxlength="5"':''} value="${e(v)}" ${x}>`);
+ const grp=(tt,l)=>l.length?`<div class="sec"><span>${tt}</span><span class="hint">${sum(l)} m³ · ${brl(l.reduce((a,o)=>a+tv(o),0))}</span></div>${cardsObras(l)}`:'';
+ return`<div class="tip">Passo 1: lance as obras do dia. O programa avisa se há caminhão livre no horário. Marque “Vendedor confirmou” só depois que ele aprovar.</div>${semana()}
+ <div class="card"><div class="ct">Nova obra</div><div class="grid">${ff('hora','Horário',n.hora,'time')}${ff('cliente','Cliente',n.cliente,'text','list="l-cli"')}${lf('Local',locSel('nf-local','',n.local))}${ff('m3','Metros cúbicos (m³)',n.m3,'number')}</div>
+ <label class="chk"><input id="nf-bomba" type="checkbox" ${n.bomba?'checked':''}> Precisa de bomba</label><label class="chk"><input id="nf-conf" type="checkbox" ${n.conf?'checked':''}> Vendedor já confirmou</label>
+ <details ${UI.op.nfm?'open':''} ontoggle="UI.op.nfm=this.open"><summary>Mais detalhes (opcional)</summary><div class="grid">${ff('vendedor','Vendedor',n.vendedor,'text','list="l-ven"')}${ff('peca','Peça',n.peca)}${ff('fck','FCK',n.fck)}${ff('slump','Slump',n.slump)}${ff('vm3','Valor do m³ (R$)',n.vm3,'number','step="any"')}${ff('taxa','Taxa da bomba (R$)',n.taxa,'number','step="any"')}${ff('perc','Percurso (min) — preenche pelo Local',n.perc,'number')}${ff('end','Endereço / referência',n.end||'')}</div><label class="chk"><input id="nf-at" type="checkbox" ${n.at?'checked':''}> ⚠ Obra fora do padrão (marcar atenção)</label></details>
+ <div class="stline" id="st"></div><button class="pri" onclick="addObra()">Lançar obra</button></div>${dl(['l-cli','cliente'])}${dl(['l-ven','vendedor'])}${locList()}
+ ${os.length?grp('Manhã',m)+grp('Tarde',t):'<div class="card"><b>Nenhuma obra neste dia.</b><div class="hint">Preencha “Nova obra” acima. Para repetir uma obra de outro dia, abra-a em Editar e use “Repetir no dia seguinte”.</div></div>'}
+ <details ${UI.op.tl?'open':''} ontoggle="UI.op.tl=this.open"><summary class="sec">Ver horários livres do dia</summary>${timeline()}</details>
+ <details ${UI.op.sg?'open':''} ontoggle="UI.op.sg=this.open"><summary class="sec">Ajuda para decidir a ordem das obras</summary>${sugestao()}</details>`}
 function fila(tipo){
  const L=S.frota.filter(f=>f.tipo==tipo),rows=S.prod[UI.data+UI.usina]||[];
  return'<div class="fila">'+L.map((f,i)=>{const rs=rows.filter(r=>(tipo=='Bomba'?r.bomba:r.cam)==f.id),lv=rs.map(livreDe).filter(Boolean).sort().pop();
@@ -415,20 +458,32 @@ function painel(tipo){
  const ch=(o,x)=>{const v=vv(o.f,UI.data),c=v.cor||'#D9D9D9';return`<div class="chip" draggable="true" data-d="${o.f.id}" style="background:${c};color:${tc(c)}">${o.n}º ${e(v.cod||'s/ veíc.')} · ${e(String(o.f.nome||'').split('/')[0])}${x}</div>`};
  const col=(t,c,l,x)=>`<div class="pc"><div class="ph" style="background:${c}">${t} (${l.length})</div>${l.map(o=>ch(o,x(o))).join('')||'<div class="leg">nenhum</div>'}</div>`;
  return`<div class="pn">${col('AINDA NÃO USADOS','#92D050',g.nu,o=>' · entra '+ent(o.f,UI.data))}${col('JÁ LIBERARAM','#FFFF00',g.li,o=>' · livre desde '+o.lv)}${col('OCUPADOS','#ED7D31',g.oc,o=>' · livre às '+(o.lv||'—'))}${col('AUSENTES / MANUT.','#FF0000',g.mn,o=>' · '+sit(o.f,UI.data))}</div>`}
+function resumoDia(P){
+ const pend=P.filter(r=>!r.real),semCam=pend.filter(r=>!r.cam).length,ob=S.obras.filter(o=>o.data==UI.data&&o.usina==UI.usina),semC=ob.filter(o=>!o.conf).length,semB=ob.filter(o=>o.bomba&&!P.some(r=>r.oid==o.id&&r.bomba)).length;
+ const pl=(n,okT,badT)=>n?`<span class="pill">${n} ${badT}</span>`:`<span class="pill ok">✔ ${okT}</span>`;
+ return`<div class="pills">${pl(semCam,'Todas as cargas têm betoneira','carga(s) sem betoneira')}${pl(semB,'Todas as obras com bomba têm bomba definida','obra(s) com bomba sem bomba definida')}${pl(semC,'Todas as obras confirmadas pelo vendedor','obra(s) sem confirmação do vendedor')}</div>`}
+function aplicarTudo(){const x=proxima(true);if(!x)return;x.L.forEach(i=>{if(i.esc&&i.tp!='ok'&&i.tp!='nada')i.r.cam=i.esc.id});x.pb.forEach(b=>{if(b.pid)(S.prod[UI.data+UI.usina]||[]).filter(r=>r.oid==b.oid).forEach(r=>r.bomba=b.pid)});save();render()}
+function ajuda(){$('#ov').innerHTML=`<div class="ov" onclick="if(event.target==this)fechaAj()"><div class="ovc"><h2 style="margin-top:0">Como usar em 3 passos</h2><ol><li><b>Programar obras</b> — lance cada obra (horário, cliente, local, m³). O programa avisa se há caminhão livre. Marque “Vendedor confirmou” só depois da aprovação dele.</li><li><b>Equipe do dia</b> — confira quem entra em 1º, 2º, 3º e qual veículo cada motorista está usando. Troque pela lista.</li><li><b>Produção</b> — as cargas já aparecem prontas. Clique em <b>Distribuir caminhões e bombas</b> (ou siga o quadro “O que fazer agora”), aperte <b>Saiu agora</b> quando o caminhão sair e, no fim do dia, baixe o Excel.</li></ol><p class="hint">Tudo é salvo sozinho. Linhas em laranja pedem atenção. Você pode abrir esta ajuda quando quiser no botão “? Ajuda”.</p><button class="pri" onclick="fechaAj()">Entendi</button></div></div>`}
+function fechaAj(){$('#ov').innerHTML='';try{localStorage.setItem('usina_help','1')}catch(_){}}
 function prod(){
- const k=UI.data+UI.usina,P=(S.prod[k]||[]),tot=P.reduce((a,r)=>a+(+r.m3||0),0),ac=S.acum[k]||0;
- const now=dstr(new Date())==UI.data?new Date().getHours()*60+new Date().getMinutes():-1;
- const sel=(r,f,tipo)=>{const cur=S.frota.find(x=>x.id==r[f]);return`<td><select data-k="prod" data-i="${r.id}" data-f="${f}" style="${cur?`background:${cur.cor};color:${tc(cur.cor)}`:''}"><option value=""></option>${S.frota.filter(x=>x.tipo==tipo).map(x=>`<option value="${x.id}" ${x.id==r[f]?'selected':''} style="background:${x.cor};color:${tc(x.cor)}">${e(x.cod)} ${e(x.placa)} · ${e(((drvOf(x.id,UI.data)||{}).nome||'sem motorista').split('/')[0])}${x.manut?' (manut.)':''}</option>`).join('')}</select></td>`};
- const UL=ultimas(P),car=r=>{if(!r.oid)return'';const i=P.filter(x=>x.oid==r.oid).indexOf(r)+1;return UL.has(r.id)?'ÚLTIMA':i+'ª'},rows=P.map(r=>{const ob=S.obras.find(z=>z.id==r.oid),ult=UL.has(r.id),cam=S.frota.find(x=>x.id==r.cam),lv=livreDe(r);let bg='';const dm=cam&&drvOf(cam.id,UI.data),pend=!dm;const m=+(r.m3r||r.m3)||0,vm=ob?+ob.vm3||0:0,tx=ob&&ob.bomba&&P.find(x=>x.oid==r.oid)===r?+ob.taxa||0:0,tipo=(r.bomba||(ob&&ob.bomba))?'Bomba':'Direto',dp=r.bomba?drvOf(r.bomba,UI.data):null,aj=dp?String(dp.nome||'').split('/').slice(1).map(x=>x.trim()):[];
-  if(lv&&now>=0&&r.cam){const d=t2m(lv)-now;bg=d<0?'background:#FF0000;color:#fff':d<=15?'background:#FFFF00':''}
-  return`<tr data-r="${r.id}" style="${pend?'background:#F4B183':''}${ult?';box-shadow:inset 0 0 0 3px #7030A0':''}"><td class="hd" draggable="true" style="cursor:grab;white-space:nowrap" title="Arraste para mover a linha">≡<button class="mb" onclick="mv('${r.id}',-1)">▲</button><button class="mb" onclick="mv('${r.id}',1)">▼</button>${ult?'<br><span class="tg" style="background:#7030A0">🏁 ÚLTIMA CARGA</span>':''}${ob&&!ob.conf?'<br><span class="tg" style="background:#C00">SEM CONFIRMAÇÃO</span>':''}${ob&&ob.at?'<br><span class="tg" style="background:#E65100">⚠ ATENÇÃO'+(ob.atn?': '+e(ob.atn):'')+'</span>':''}</td><td>${inp('prod',r.id,'prog',r.prog,'time')}</td><td style="white-space:nowrap">${inp('prod',r.id,'real',r.real,'time')}<button class="mb" title="Pegar horário agora" onclick="agora('${r.id}')">⏱</button></td><td>${inp('prod',r.id,'ped',r.ped)}</td><td>${inp('prod',r.id,'zap',r.zap||'')}</td><td>${inp('prod',r.id,'sis',r.sis||'')}</td><td class="c" style="white-space:nowrap;font-weight:700">${car(r)}</td><td>${inp('prod',r.id,'cli',r.cli)}</td><td>${inp('prod',r.id,'loc',r.loc)}</td><td>${inp('prod',r.id,'peca',r.peca)}</td><td>${inp('prod',r.id,'vend',r.vend)}</td><td class="c" style="white-space:nowrap">${vm?brl(vm):''}</td><td class="c" style="white-space:nowrap">${tx?brl(tx):''}</td><td class="c" style="white-space:nowrap;background:#A6A6A6">${r.real&&vm?brl(m*vm):''}</td><td class="c">${tipo}</td>${sel(r,'cam','Betoneira')}<td style="${cam?`background:${cam.cor};color:${tc(cam.cor)}`:''};white-space:nowrap;padding:4px">${dm?e(dm.nome)+(sit(dm,UI.data)?' ⚠ '+sit(dm,UI.data):''):'⚠ PENDENTE'}</td>${sel(r,'bomba','Bomba')}<td style="white-space:nowrap">${dp?e(dp.nome):''}</td><td>${inp('prod',r.id,'aj1',r.aj1||aj[0]||'')}</td><td>${inp('prod',r.id,'aj2',r.aj2||aj[1]||'')}</td><td>${inp('prod',r.id,'traco',r.traco||'')}</td><td>${inp('prod',r.id,'fck',r.fck)}</td><td>${inp('prod',r.id,'brita',r.brita||'')}</td><td>${inp('prod',r.id,'slump',r.slump)}</td><td>${inp('prod',r.id,'m3',r.m3,'number')}</td><td>${inp('prod',r.id,'m3r',r.m3r||'','number')}</td><td>${inp('prod',r.id,'perc',r.perc,'number')}</td><td style="${bg};white-space:nowrap">${inp('prod',r.id,'livre',r.livre||lv,'time','style="font-weight:700"')}${r.livre?`<button class="mb" title="Voltar ao cálculo automático" onclick="autoLivre('${r.id}')">↺</button>`:''}</td><td>${inp('prod',r.id,'cim',r.cim||'','number','step="any"')}</td><td>${inp('prod',r.id,'adi',r.adi||'','number','step="any"')}</td><td>${inp('prod',r.id,'b1',r.b1||'','number','step="any"')}</td><td>${inp('prod',r.id,'b0',r.b0||'','number','step="any"')}</td><td>${inp('prod',r.id,'are',r.are||'','number','step="any"')}</td><td>${inp('prod',r.id,'po',r.po||'','number','step="any"')}</td><td>${inp('prod',r.id,'obs',r.obs)}</td><td class="x" onclick="del('prod','${r.id}')">×</td></tr>`}).join('');
- return`<div class="tot"><div class="o">TOTAL ${tot.toFixed(1)} m³</div><div class="y">${P.length} cargas</div><div style="background:#92D050">PRODUZIDO ${P.reduce((a,r)=>a+mp(r),0).toFixed(1)} m³</div><div style="background:#9DC3E6">ACUMULADO ATÉ ONTEM ${acumAnt(UI.data).toFixed(1)} m³</div><div class="o">TOTAL GERAL ${(acumAnt(UI.data)+prodDia(UI.data)).toFixed(1)} m³</div></div><div style="margin-bottom:6px"><button onclick="exportProd()">📊 Baixar produção do dia (Excel)</button> <span class="hint">Conta como produzida a carga com horário em “Realizado” (use o ⏱).</span></div>
+ const k=UI.data+UI.usina,P=S.prod[k]||[],tot=P.reduce((a,r)=>a+(+r.m3||0),0),now=dstr(new Date())==UI.data?new Date().getHours()*60+new Date().getMinutes():-1;
+ const selC=(r,f,tipo)=>{const cur=S.frota.find(x=>x.id==r[f]);return`<select data-k="prod" data-i="${r.id}" data-f="${f}" style="min-width:175px;${cur?`border-left:6px solid ${cur.cor}`:''}"><option value="">— escolher —</option>${S.frota.filter(x=>x.tipo==tipo).map(x=>`<option value="${x.id}" ${x.id==r[f]?'selected':''}>${e(x.cod)} ${e(x.placa)} · ${e(((drvOf(x.id,UI.data)||{}).nome||'sem motorista').split('/')[0])}${x.manut?' (manut.)':''}</option>`).join('')}</select>`};
+ const UL=ultimas(P),car=r=>{if(!r.oid)return'';const i=P.filter(x=>x.oid==r.oid).indexOf(r)+1,n=P.filter(x=>x.oid==r.oid).length;return`carga ${i} de ${n}`};
+ const rows=P.map(r=>{const ob=S.obras.find(z=>z.id==r.oid),ult=UL.has(r.id),cam=S.frota.find(x=>x.id==r.cam),lv=livreDe(r),dm=cam&&drvOf(cam.id,UI.data),open=UI.op['r'+r.id];
+  const m=+(r.m3r||r.m3)||0,vm=ob?+ob.vm3||0:0,tx=ob&&ob.bomba&&P.find(x=>x.oid==r.oid)===r?+ob.taxa||0:0,tipo=(r.bomba||(ob&&ob.bomba))?'Bomba':'Direto',dp=r.bomba?drvOf(r.bomba,UI.data):null,aj=dp?String(dp.nome||'').split('/').slice(1).map(x=>x.trim()):[];
+  let lc='';if(lv&&now>=0&&r.cam&&!r.real){const d=t2m(lv)-now;lc=d<0?'late':d<=15?'soon':''}
+  const I=(f,t,x)=>inp('prod',r.id,f,r[f]===undefined?'':r[f],t||'text',x||'');
+  const tags=(ult?'<span class="tg" style="background:#7c3aed">🏁 ÚLTIMA CARGA</span>':'')+(ob&&!ob.conf?'<span class="tg" style="background:#dc2626">SEM CONFIRMAÇÃO</span>':'')+(ob&&ob.at?'<span class="tg" style="background:#ea580c">⚠ ATENÇÃO'+(ob.atn?': '+e(ob.atn):'')+'</span>':'')+(tipo=='Bomba'?'<span class="tg" style="background:#0891b2">bomba</span>':'');
+  return`<tr data-r="${r.id}" class="${!dm&&!r.real?'pend':''} ${r.real?'done':''} ${ult?'ult':''}"><td class="hd" draggable="true" title="Arraste para mudar a ordem">⠿<br><button class="mb" onclick="mv('${r.id}',-1)">▲</button><button class="mb" onclick="mv('${r.id}',1)">▼</button></td><td>${I('prog','time')}</td><td><b>${e(r.cli)||'(sem cliente)'}</b> ${tags}<div class="hint">${e(r.loc)} · ${car(r)}</div></td><td class="c"><b>${m}</b> m³</td><td>${selC(r,'cam','Betoneira')}</td><td style="white-space:nowrap">${dm?e(dm.nome)+(sit(dm,UI.data)?' ⚠ '+sit(dm,UI.data):''):'<span class="hint" style="color:#c2410c">sem motorista</span>'}</td><td style="white-space:nowrap">${I('real','time')}${r.real?'':`<button class="mb pri" onclick="agora('${r.id}')">Saiu agora</button>`}</td><td class="${lc}" style="white-space:nowrap">${inp('prod',r.id,'livre',r.livre||lv,'time','style="font-weight:700"')}${r.livre?`<button class="mb" title="Voltar ao automático" onclick="autoLivre('${r.id}')">↺</button>`:''}</td><td><button class="mb" onclick="UI.op['r${r.id}']=!UI.op['r${r.id}'];render()">${open?'▴ fechar':'▾ detalhes'}</button></td></tr>
+  ${open?`<tr class="det"><td colspan="9"><div class="grid">${lf('Cliente',I('cli'))}${lf('Local da obra',I('loc'))}${lf('Peça',I('peca'))}${lf('Vendedor',I('vend'))}${lf('Nº Pedido',I('ped'))}${lf('Contrato Zap',I('zap'))}${lf('Contrato Sistema',I('sis'))}${lf('Bomba',selC(r,'bomba','Bomba'))}${lf('Motorista da bomba',`<input value="${e(dp?dp.nome:'')}" disabled>`)}${lf('Ajudante 1',inp('prod',r.id,'aj1',r.aj1||aj[0]||''))}${lf('Ajudante 2',inp('prod',r.id,'aj2',r.aj2||aj[1]||''))}${lf('Percurso (min)',I('perc','number'))}${lf('m³ da carga',I('m3','number'))}${lf('m³ produzido',I('m3r','number'))}${lf('Traço',I('traco'))}${lf('FCK',I('fck'))}${lf('Brita',I('brita'))}${lf('Slump',I('slump'))}</div><div class="ct" style="margin-top:6px">Pesagem (balança)</div><div class="grid">${lf('Cimento',I('cim','number','step="any"'))}${lf('Aditivo',I('adi','number','step="any"'))}${lf('Brita 1',I('b1','number','step="any"'))}${lf('Brita 0',I('b0','number','step="any"'))}${lf('Areia',I('are','number','step="any"'))}${lf('Pó',I('po','number','step="any"'))}${lf('Balança (observação)',I('obs'))}</div><div class="hint">${vm?'Valor desta remessa: '+(r.real?brl(m*vm):'—')+' ('+brl(vm)+' por m³)'+(tx?' · taxa da bomba '+brl(tx):''):''}</div>${r.oid?'':`<button class="bad" onclick="del('prod','${r.id}')">Apagar esta linha</button>`}</td></tr>`:''}`}).join('');
+ const prd=P.reduce((a,r)=>a+mp(r),0),feitas=P.filter(r=>r.real).length;
+ return`<div class="tip">Passo 3: as cargas já vêm da programação. Clique em <b>Distribuir caminhões e bombas</b>, aperte <b>Saiu agora</b> quando o caminhão sair e, no fim do dia, baixe o Excel.</div>
+ <div class="kpis"><div class="kpi"><small>Programado hoje</small><b>${tot.toFixed(1)} m³</b></div><div class="kpi"><small>Produzido</small><b>${prd.toFixed(1)} m³</b></div><div class="kpi"><small>Cargas que já saíram</small><b>${feitas} de ${P.length}</b></div><div class="kpi"><small>Acumulado do mês (com hoje)</small><b>${(acumAnt(UI.data)+prodDia(UI.data)).toFixed(1)} m³</b></div></div>
+ ${P.length?resumoDia(P):''}
+ <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="pri" onclick="aplicarTudo()">⚡ Distribuir caminhões e bombas</button><button onclick="exportProd()">📊 Baixar Excel do dia</button><button onclick="novaLinha()">+ Linha extra</button></div>
  ${proxima()}
- <div class="sec" style="margin-top:0">CAMINHÕES E BOMBAS — arraste um cartão para mudar a ordem de carregamento</div>
- <b style="font-size:11px">BETONEIRAS</b>${painel('Betoneira')}<b style="font-size:11px">BOMBAS</b>${painel('Bomba')}
- <div class="sec">USINA DE PLANALTINA ${UI.usina} <span style="background:#F4B183;padding:0 8px;border:1px solid #333">linha laranja = sem motorista (pendente)</span> <span style="border:3px solid #7030A0;padding:0 8px">contorno roxo = última carga da obra</span></div>
- <table class="pt"><tr><th></th><th>Prog. (Horário)</th><th>Horário Realizado</th><th>Nº Pedido</th><th>Nº Contrato do Zap</th><th>Nº Contrato Sistema</th><th>Carga</th><th>Cliente</th><th>Local concretagem</th><th>Peça</th><th>Vendedor</th><th>Valor m³</th><th>Taxa Bomba</th><th>Valor Remessa Unit.</th><th>Tipo</th><th>Betoneira</th><th>Motorista Betoneira</th><th>Bomba</th><th>Motorista Bomba</th><th>AJUDANTE</th><th>AJUDANTE</th><th>Traço</th><th>FCK</th><th>Brita</th><th>Slump</th><th>M³ Prog.</th><th>M³</th><th>Perc.</th><th>Livre às</th><th>CIMENTO</th><th>ADITIVO</th><th>BRITA 1</th><th>BRITA 0</th><th>AREIA</th><th>PÓ</th><th class="bal">Balança</th><th></th></tr>${rows}</table>
- <div style="margin-top:8px"><button onclick="gerar()">↻ Atualizar da programação</button> <span class="hint">As cargas e horários já vêm da programação. O botão atualiza só o que você não editou à mão.</span> <button onclick="novaLinha()">+ Linha</button> <button onclick="(S.man=S.man||{})[UI.data+UI.usina]=0;gerar()">Ordenar por horário</button> <span class="hint">“Livre às” = horário + 40 min carregando + 1h descarregando (ajuste em Equipe e frota > Capacidade). Edite se mudar. Fica amarelo 15 min antes e vermelho se já liberou.</span></div>`}
+ ${P.length?`<table><tr><th></th><th>Hora</th><th>Cliente / obra</th><th>Quantidade</th><th>Betoneira</th><th>Motorista</th><th>Saída</th><th>Livre às</th><th></th></tr>${rows}</table><div class="hint" style="margin-top:6px">Linha laranja = carga sem motorista. Roxo = última carga da obra. Verde = já saiu. “Livre às” = saída + ${S.cfg.lc} min carregando + ${S.cfg.ld} min descarregando.</div>`:'<div class="card"><b>Sem cargas neste dia.</b><div class="hint">Lance as obras em “1 · Programar obras”: as cargas aparecem aqui sozinhas.</div></div>'}
+ <details ${UI.op.pn?'open':''} ontoggle="UI.op.pn=this.open"><summary class="sec">Ver caminhões e bombas (livres, ocupados, ausentes)</summary><b class="hint">BETONEIRAS</b>${painel('Betoneira')}<b class="hint">BOMBAS</b>${painel('Bomba')}</details>`}
 function eq(){
  const D=UI.data,SIT=['Férias','Banco de hora','Atestado','Falta','Folga'],vs=t=>S.frota.filter(f=>f.tipo==t);
  const vsel=(f,tipo)=>`<select onchange="setV('${f.id}',this.value)" style="width:100%;font-weight:700"><option value="">— sem veículo —</option>${vs(tipo).map(x=>`<option value="${x.id}" ${x.id==vid(f,D)?'selected':''}>${e(x.cod)} · ${e(x.placa)}${x.manut?' (manut.)':''}</option>`).join('')}</select>`;
@@ -439,16 +494,16 @@ function eq(){
  const cadV=tipo=>`<table><tr><th>Cód.</th><th>Placa</th><th>Cor</th><th>Manutenção</th><th></th></tr>`+vs(tipo).map(f=>`<tr style="background:${f.manut?'#FF9999':'inherit'}"><td>${inp('frota',f.id,'cod',f.cod)}</td><td>${inp('frota',f.id,'placa',f.placa)}</td><td class="c"><input type="color" data-k="frota" data-i="${f.id}" data-f="cor" value="${f.cor}" style="width:40px;padding:0"></td><td class="c"><input type="checkbox" data-k="frota" data-i="${f.id}" data-f="manut" ${f.manut?'checked':''}></td><td class="x" onclick="del('frota','${f.id}')">×</td></tr>`).join('')+`</table><button onclick="addVeic('${tipo}')">+ Veículo</button>`;
  const dt=(n,t,b)=>`<details ${UI.op[n]?'open':''} ontoggle="UI.op.${n}=this.open"><summary class="sec" style="cursor:pointer">${t}</summary>${b}</details>`;
  const sl=t=>(S.rod.slots[t]||[]).join(', '),br=D.split('-').reverse().join('/');
- return`<div style="margin-bottom:6px"><button onclick="exportXlsx()">📊 Baixar escala em Excel</button> <button onclick="delete S.ov[UI.data];delete S.esc[UI.data];save();render()">Voltar o dia ao automático</button> <button onclick="if(confirm('Apagar a escala atual (motoristas, veículos e ordem) e recomeçar pela planilha?')){resetPlanilha(UI.data);save();render()}">Resetar escala (planilha)</button> <span class="hint">Dia ${br}. Escolha quem entra em 1º, 2º, 3º na coluna <b>Entra</b> (lista ou ▲▼): essa ordem vira o ponto de partida e nos dias seguintes gira sozinha. Troque o <b>Veículo</b> do motorista: vale deste dia em diante; se o veículo estava com outro motorista, os dois trocam.</span></div>
+ return`<div class="tip">Passo 2: escolha quem entra em 1º, 2º, 3º (pela lista ou ▲▼) e o veículo de cada motorista. A ordem vale para os próximos dias, que giram sozinhos.</div><div style="margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap"><button onclick="exportXlsx()">📊 Baixar escala em Excel</button> <button onclick="delete S.ov[UI.data];delete S.esc[UI.data];save();render()">Voltar o dia ao automático</button> <button onclick="if(confirm('Apagar a escala atual (motoristas, veículos e ordem) e recomeçar pela planilha?')){resetPlanilha(UI.data);save();render()}">Resetar escala (planilha)</button> </div>
  <div class="sec" style="margin-top:0">BOMBAS</div>${dia('Bomba')}
  <div class="sec">BETONEIRAS</div>${dia('Betoneira')}
- ${dt('rod','RODÍZIO — sentido, horários e dias de trabalho (clique para abrir)',`<table style="width:auto"><tr><th>Sentido</th><th>Horários de entrada — Bombas</th><th>Horários de entrada — Betoneiras</th></tr><tr><td><select data-cfg="sent"><option value="1" ${S.cfg.sent>0?'selected':''}>1º de hoje vira 2º amanhã (o último sobe p/ 1º)</option><option value="-1" ${S.cfg.sent<0?'selected':''}>1º de hoje vai para o fim amanhã</option></select></td><td><input data-slot="Bomba" value="${e(sl('Bomba'))}" style="min-width:200px"></td><td><input data-slot="Betoneira" value="${e(sl('Betoneira'))}" style="min-width:260px"></td></tr></table><div style="margin:4px 0">Dias de trabalho: ${[1,2,3,4,5,6,0].map(n=>`<label style="margin-right:8px"><input type="checkbox" data-dia="${n}" ${S.cfg.dias.includes(n)?'checked':''}> ${DIAS[n]}</label>`).join('')}</div><div class="hint" style="margin:4px 0">A ordem que você escala num dia vale para ele e vira o ponto de partida: nos dias seguintes a escala gira sozinha (uma posição por dia de trabalho). Os horários acompanham a posição. Quem está ausente sai da fila e os demais sobem.</div>`)}
- ${dt('cadm','MOTORISTAS — ordem base e ausências (clique para abrir)','<b>Bombas</b> (arraste ≡ para mudar a ordem base)'+cadM('Bomba')+'<b>Betoneiras</b>'+cadM('Betoneira'))}
- ${dt('cadv','VEÍCULOS — placa, código e manutenção (clique para abrir)','<b>Bombas</b>'+cadV('Bomba')+'<b>Betoneiras</b>'+cadV('Betoneira'))}
- ${dt('loc','LOCAIS E DISTÂNCIAS (clique para abrir)',`${locList()}<div class="hint">Lista de regiões (não precisa do endereço exato): escolha o Local na obra e o percurso preenche sozinho. Os tempos com ≈ são estimativas minhas: corrija com a sua experiência e o ≈ some. Na usina GO os tempos começam vazios.</div><b>Minutos saindo da usina ${UI.usina}</b><table style="width:auto"><tr><th>Local</th><th>Grupo</th><th>Min da usina</th><th></th></tr>${LL(UI.usina).map(x=>`<tr><td>${inp('loc'+UI.usina,x.id,'n',x.n)}</td><td><select data-k="loc${UI.usina}" data-i="${x.id}" data-f="g"><option value="P">Planaltina</option><option value="F" ${x.g=='F'?'selected':''}>Fora de Planaltina</option></select></td><td style="white-space:nowrap">${inp('loc'+UI.usina,x.id,'m',x.m,'number')}${x.est?' <span title="tempo estimado: confira e ajuste">≈</span>':''}</td><td class="x" onclick="del('loc${UI.usina}','${x.id}')">×</td></tr>`).join('')}</table><button onclick="S['loc'+UI.usina].push({id:uid(),n:'',g:'P',m:15});save();render()">+ Local</button><br><b>Distância entre dois locais</b> <span class="hint">(opcional: mostra a economia quando a bomba vai direto de uma obra para outra)</span><table style="width:auto"><tr><th>Local A</th><th>Local B</th><th>Min</th><th></th></tr>${S.par.map(x=>`<tr><td>${inp('par',x.id,'a',x.a,'text','list="l-loc"')}</td><td>${inp('par',x.id,'b',x.b,'text','list="l-loc"')}</td><td>${inp('par',x.id,'m',x.m,'number')}</td><td class="x" onclick="del('par','${x.id}')">×</td></tr>`).join('')}</table><button onclick="S.par.push({id:uid(),a:'',b:'',m:10});save();render()">+ Distância</button>`)}
- ${dt('out','PAZEIRO / PROGRAMAÇÃO / FÉRIAS / BANCO DE HORA (clique para abrir)',`<table><tr><th>Função</th><th>Nome</th><th>Horário</th><th></th></tr>${S.staff.map(s=>`<tr><td>${inp('staff',s.id,'cat',s.cat)}</td><td>${inp('staff',s.id,'nome',s.nome)}</td><td>${inp('staff',s.id,'hora',s.hora,'time')}</td><td class="x" onclick="del('staff','${s.id}')">×</td></tr>`).join('')}</table><button onclick="S.staff.push({id:uid(),cat:'',nome:'',hora:''});save();render()">+ Pessoa</button> <span class="hint">Nome em “Férias” ou “Banco de hora” igual ao de um motorista = ausente automático.</span>`)}
- ${dt('cap','CAPACIDADE E BACKUP (clique para abrir)',`<table style="width:auto"><tr><th>m³/h da central</th><th>Ida fixa (min)</th><th>Descarga (min)</th><th>Carregar (min) — livre às</th><th>Descarregar (min) — livre às</th></tr><tr><td><input type="number" data-cfg="mh" value="${S.cfg.mh}"></td><td><input type="number" data-cfg="ida" value="${S.cfg.ida}"></td><td><input type="number" data-cfg="desc" value="${S.cfg.desc}"></td><td><input type="number" data-cfg="lc" value="${S.cfg.lc}"></td><td><input type="number" data-cfg="ld" value="${S.cfg.ld}"></td></tr></table><table style="width:auto"><tr><th>Vazão da bomba (m³/h)</th><th>Montar (min)</th><th>Lavar (min)</th></tr><tr><td><input type="number" data-cfg="bv" value="${S.cfg.bv}"></td><td><input type="number" data-cfg="bm" value="${S.cfg.bm}"></td><td><input type="number" data-cfg="bl" value="${S.cfg.bl}"></td></tr></table><div class="hint" style="margin:4px 0">Intervalo entre cargas: ${gap()} min (8 m³ ÷ m³/h). Ciclo (cabe/apertado) = ida fixa + descarga + 2 × percurso.</div><button onclick="backup()">Baixar backup</button> <label class="hint"><button onclick="this.nextElementSibling.click()">Restaurar backup</button><input type="file" accept=".json" hidden onchange="restaurar(this.files[0])"></label>`)}`}
-function render(){if(SB.url&&window.supabase&&!me){loginView();return}if(UI.tab=='prod'&&!(S.pa&&S.pa[UI.data+UI.usina])&&!(S.prod[UI.data+UI.usina]||[]).length&&S.obras.some(o=>o.data==UI.data&&o.usina==UI.usina))gerar(true);head();$('#app').innerHTML=UI.tab=='prog'?prog():UI.tab=='prod'?prod():eq();if(UI.tab=='prog')aviso()}
+ ${dt('rod','RODÍZIO — sentido, horários e dias de trabalho',`<table style="width:auto"><tr><th>Sentido</th><th>Horários de entrada — Bombas</th><th>Horários de entrada — Betoneiras</th></tr><tr><td><select data-cfg="sent"><option value="1" ${S.cfg.sent>0?'selected':''}>1º de hoje vira 2º amanhã (o último sobe p/ 1º)</option><option value="-1" ${S.cfg.sent<0?'selected':''}>1º de hoje vai para o fim amanhã</option></select></td><td><input data-slot="Bomba" value="${e(sl('Bomba'))}" style="min-width:200px"></td><td><input data-slot="Betoneira" value="${e(sl('Betoneira'))}" style="min-width:260px"></td></tr></table><div style="margin:4px 0">Dias de trabalho: ${[1,2,3,4,5,6,0].map(n=>`<label style="margin-right:8px"><input type="checkbox" data-dia="${n}" ${S.cfg.dias.includes(n)?'checked':''}> ${DIAS[n]}</label>`).join('')}</div><div class="hint" style="margin:4px 0">A ordem que você escala num dia vale para ele e vira o ponto de partida: nos dias seguintes a escala gira sozinha (uma posição por dia de trabalho). Os horários acompanham a posição. Quem está ausente sai da fila e os demais sobem.</div>`)}
+ ${dt('cadm','MOTORISTAS — ordem base e ausências','<b>Bombas</b> (arraste ≡ para mudar a ordem base)'+cadM('Bomba')+'<b>Betoneiras</b>'+cadM('Betoneira'))}
+ ${dt('cadv','VEÍCULOS — placa, código e manutenção','<b>Bombas</b>'+cadV('Bomba')+'<b>Betoneiras</b>'+cadV('Betoneira'))}
+ ${dt('loc','LOCAIS E DISTÂNCIAS',`${locList()}<div class="hint">Lista de regiões (não precisa do endereço exato): escolha o Local na obra e o percurso preenche sozinho. Os tempos com ≈ são estimativas minhas: corrija com a sua experiência e o ≈ some. Na usina GO os tempos começam vazios.</div><b>Minutos saindo da usina ${UI.usina}</b><table style="width:auto"><tr><th>Local</th><th>Grupo</th><th>Min da usina</th><th></th></tr>${LL(UI.usina).map(x=>`<tr><td>${inp('loc'+UI.usina,x.id,'n',x.n)}</td><td><select data-k="loc${UI.usina}" data-i="${x.id}" data-f="g"><option value="P">Planaltina</option><option value="F" ${x.g=='F'?'selected':''}>Fora de Planaltina</option></select></td><td style="white-space:nowrap">${inp('loc'+UI.usina,x.id,'m',x.m,'number')}${x.est?' <span title="tempo estimado: confira e ajuste">≈</span>':''}</td><td class="x" onclick="del('loc${UI.usina}','${x.id}')">×</td></tr>`).join('')}</table><button onclick="S['loc'+UI.usina].push({id:uid(),n:'',g:'P',m:15});save();render()">+ Local</button><br><b>Distância entre dois locais</b> <span class="hint">(opcional: mostra a economia quando a bomba vai direto de uma obra para outra)</span><table style="width:auto"><tr><th>Local A</th><th>Local B</th><th>Min</th><th></th></tr>${S.par.map(x=>`<tr><td>${inp('par',x.id,'a',x.a,'text','list="l-loc"')}</td><td>${inp('par',x.id,'b',x.b,'text','list="l-loc"')}</td><td>${inp('par',x.id,'m',x.m,'number')}</td><td class="x" onclick="del('par','${x.id}')">×</td></tr>`).join('')}</table><button onclick="S.par.push({id:uid(),a:'',b:'',m:10});save();render()">+ Distância</button>`)}
+ ${dt('out','PAZEIRO / PROGRAMAÇÃO / FÉRIAS / BANCO DE HORA',`<table><tr><th>Função</th><th>Nome</th><th>Horário</th><th></th></tr>${S.staff.map(s=>`<tr><td>${inp('staff',s.id,'cat',s.cat)}</td><td>${inp('staff',s.id,'nome',s.nome)}</td><td>${inp('staff',s.id,'hora',s.hora,'time')}</td><td class="x" onclick="del('staff','${s.id}')">×</td></tr>`).join('')}</table><button onclick="S.staff.push({id:uid(),cat:'',nome:'',hora:''});save();render()">+ Pessoa</button> <span class="hint">Nome em “Férias” ou “Banco de hora” igual ao de um motorista = ausente automático.</span>`)}
+ ${dt('cap','CAPACIDADE E BACKUP',`<table style="width:auto"><tr><th>m³/h da central</th><th>Ida fixa (min)</th><th>Descarga (min)</th><th>Carregar (min) — livre às</th><th>Descarregar (min) — livre às</th></tr><tr><td><input type="number" data-cfg="mh" value="${S.cfg.mh}"></td><td><input type="number" data-cfg="ida" value="${S.cfg.ida}"></td><td><input type="number" data-cfg="desc" value="${S.cfg.desc}"></td><td><input type="number" data-cfg="lc" value="${S.cfg.lc}"></td><td><input type="number" data-cfg="ld" value="${S.cfg.ld}"></td></tr></table><table style="width:auto"><tr><th>Vazão da bomba (m³/h)</th><th>Montar (min)</th><th>Lavar (min)</th></tr><tr><td><input type="number" data-cfg="bv" value="${S.cfg.bv}"></td><td><input type="number" data-cfg="bm" value="${S.cfg.bm}"></td><td><input type="number" data-cfg="bl" value="${S.cfg.bl}"></td></tr></table><div class="hint" style="margin:4px 0">Intervalo entre cargas: ${gap()} min (8 m³ ÷ m³/h). Ciclo (cabe/apertado) = ida fixa + descarga + 2 × percurso.</div><button onclick="backup()">Baixar backup</button> <label class="hint"><button onclick="this.nextElementSibling.click()">Restaurar backup</button><input type="file" accept=".json" hidden onchange="restaurar(this.files[0])"></label>`)}`}
+function render(){if(SB.url&&window.supabase&&!me){loginView();return}if(UI.tab=='prod')gerar(true);head();$('#app').innerHTML=UI.tab=='prog'?prog():UI.tab=='prod'?prod():eq();if(UI.tab=='prog')aviso();if(!UI.hs){UI.hs=1;try{if(!localStorage.getItem('usina_help'))ajuda()}catch(_){}}}
 // ---------- sincronização online (Supabase) ----------
 let sb=null,me=null,ch=null,pt=null,rt=null,SNAP={},ST='',LIM='',OM={};
 const ORD=['prod','mots','frota'],KV=['cfg','rod','esc','asg','ov','man','pa','acum','rst','cf2','clr1','locSeed'];
@@ -495,7 +550,7 @@ function assina(){
   else{const x=JSON.stringify(r.data);if(SNAP[key]===x||(r.dia&&r.dia<LIM))return;aplica(r.kind,r.id,r.data,false);SNAP[key]=x}
   try{localStorage.setItem(K,JSON.stringify(S))}catch(_){}
   clearTimeout(rt);rt=setTimeout(()=>{mig();rr()},150)}).subscribe(st=>{if(st=='SUBSCRIBED')sync('online')})}
-function loginView(){$('#ban').textContent='USINA — acesso restrito';$('#bar').innerHTML='';$('#app').innerHTML=`<div style="max-width:320px;margin:40px auto;padding:16px;border:2px solid #333;background:#fff"><h3 style="margin:0 0 10px">Entrar</h3><input id="lg-e" type="email" placeholder="e-mail" style="width:100%;margin-bottom:6px"><input id="lg-s" type="password" placeholder="senha" style="width:100%;margin-bottom:6px" onkeydown="if(event.key=='Enter')entrar()"><button onclick="entrar()" style="width:100%;font-weight:700">Entrar</button><div id="lg-m" style="color:#C00;margin-top:6px"></div></div>`}
+function loginView(){$('#ban').textContent='Usina de Planaltina';$('#bar').innerHTML='';$('#app').innerHTML=`<div class="card" style="max-width:340px;margin:40px auto"><div class="ct">Entrar</div><div class="grid" style="grid-template-columns:1fr"><label class="fld"><span>E-mail</span><input id="lg-e" type="email"></label><label class="fld"><span>Senha</span><input id="lg-s" type="password" onkeydown="if(event.key=='Enter')entrar()"></label></div><button class="pri" style="width:100%" onclick="entrar()">Entrar</button><div id="lg-m" style="color:#dc2626;margin-top:8px"></div></div>`}
 async function entrar(){const{data,error}=await sb.auth.signInWithPassword({email:$('#lg-e').value.trim(),password:$('#lg-s').value});if(error){$('#lg-m').textContent='E-mail ou senha incorretos.';return}me=data.user;carrega()}
 async function sair(){await sb.auth.signOut();me=null;if(ch){sb.removeChannel(ch);ch=null}render()}
 function start(){if(SB.url&&window.supabase){sb=window.supabase.createClient(SB.url,SB.key);sb.auth.getSession().then(({data})=>{if(data.session){me=data.session.user;carrega()}else render()})}else render()}
