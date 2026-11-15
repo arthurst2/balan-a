@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Cobranças</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#EFEEE8;
+    --paper:#FFFFFF;
+    --ink:#17231F;
+    --ink-soft:#54615A;
+    --line:#D9D4C6;
+    --line-strong:#B9B2A0;
+    --teal:#1F6F5C;
+    --teal-dark:#134539;
+    --amber:#B9791F;
+    --amber-bg:#FBF1DE;
+    --brick:#A6382B;
+    --brick-bg:#FBE7E3;
+    --green:#2E7D53;
+    --green-bg:#E3F1E7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    line-height:1.45;
+  }
+  .num{ font-family:'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+  .app{ max-width:1180px; margin:0 auto; padding:48px 28px 96px; }
+
+  header.masthead{ border-bottom:1px solid var(--line-strong); padding-bottom:22px; margin-bottom:28px; }
+  header.masthead h1{ font-size:clamp(28px,4vw,40px); font-weight:700; margin:0 0 6px; letter-spacing:-0.01em; }
+  header.masthead p{ margin:0; color:var(--ink-soft); font-size:15px; max-width:560px; }
+
+  .ledger-strip{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    border:1px solid var(--line-strong);
+    background:var(--paper);
+    margin-bottom:32px;
+  }
+  .ledger-item{ padding:20px 24px; border-left:1px solid var(--line); }
+  .ledger-item:first-child{ border-left:none; }
+  .ledger-item .label{ font-size:13px; color:var(--ink-soft); margin-bottom:6px; }
+  .ledger-item .value{ font-size:26px; font-weight:600; }
+  .ledger-item .count{ font-size:13px; color:var(--ink-soft); margin-top:4px; }
+  .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; }
+  .dot.brick{ background:var(--brick); }
+  .dot.amber{ background:var(--amber); }
+  .dot.green{ background:var(--green); }
+
+  .toolbar{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; justify-content:space-between; }
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; }
+  .filters button{
+    background:var(--paper); border:1px solid var(--line-strong); color:var(--ink-soft);
+    padding:7px 14px; font-family:inherit; font-size:13px; cursor:pointer;
+  }
+  .filters button.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .actions-right{ display:flex; gap:10px; }
+
+  button.primary{
+    background:var(--teal); color:#fff; border:none; padding:10px 18px;
+    font-family:inherit; font-weight:600; font-size:14px; cursor:pointer;
+  }
+  button.primary:hover{ background:var(--teal-dark); }
+  button.ghost{
+    background:transparent; border:1px solid var(--line-strong); color:var(--ink);
+    padding:10px 18px; font-family:inherit; font-weight:500; font-size:14px; cursor:pointer;
+  }
+  button.ghost:hover{ border-color:var(--ink); }
+
+  form#clientForm{
+    background:var(--paper); border:1px solid var(--line-strong); padding:24px; margin-bottom:28px;
+  }
+  form#clientForm h2{ font-size:18px; margin:0 0 18px; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:12.5px; color:var(--ink-soft); margin-bottom:5px; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:9px 10px; border:1px solid var(--line-strong); background:#fff;
+    font-family:inherit; font-size:14px; color:var(--ink);
+  }
+  .field textarea{ resize:vertical; min-height:54px; }
+
+  #parcelasWrap{ border-top:1px dashed var(--line-strong); margin-top:8px; padding-top:14px; }
+  .parcela-row{ display:grid; grid-template-columns:70px 1fr 1fr 32px; gap:10px; align-items:end; margin-bottom:10px; }
+  .parcela-row .field{ margin-bottom:0; }
+  .rm-parcela{ background:none; border:1px solid var(--line-strong); color:var(--brick); cursor:pointer; height:38px; }
+  .add-parcela{ background:none; border:1px dashed var(--line-strong); color:var(--ink-soft); padding:8px 12px; cursor:pointer; font-family:inherit; font-size:13px; margin-top:2px; }
+  .form-buttons{ display:flex; gap:10px; margin-top:20px; }
+
+  .table-wrap{ background:var(--paper); border:1px solid var(--line-strong); overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; min-width:920px; }
+  thead th{
+    text-align:left; font-size:12px; color:var(--ink-soft); font-weight:600;
+    padding:10px 12px; border-bottom:1px solid var(--line-strong); white-space:nowrap;
+  }
+  tr.client-row td{
+    padding:14px 12px 6px; font-weight:600; border-top:1px solid var(--line-strong);
+    font-size:15px;
+  }
+  tr.client-row .client-meta{ font-weight:400; font-size:12.5px; color:var(--ink-soft); display:block; margin-top:2px; }
+  tr.client-row .client-actions{ float:right; display:flex; gap:8px; }
+  tr.client-row .client-actions button{
+    background:none; border:1px solid var(--line-strong); font-size:12px; padding:4px 9px; cursor:pointer; color:var(--ink-soft); font-family:inherit;
+  }
+  tr.parcela-line td{ padding:9px 12px; border-top:1px solid var(--line); font-size:13.5px; vertical-align:middle; }
+  tr.parcela-line:hover{ background:#FAFAF7; }
+
+  .badge{ display:inline-flex; align-items:center; gap:6px; padding:3px 10px; font-size:12.5px; font-weight:600; }
+  .badge.pago{ background:var(--green-bg); color:var(--green); }
+  .badge.a-vencer{ background:var(--amber-bg); color:var(--amber); }
+  .badge.vencido{ background:var(--brick-bg); color:var(--brick); }
+
+  .row-actions{ display:flex; gap:6px; white-space:nowrap; }
+  .row-actions button{
+    border:1px solid var(--line-strong); background:#fff; font-family:inherit; font-size:12px;
+    padding:5px 9px; cursor:pointer; color:var(--ink);
+  }
+  .row-actions button.wa{ border-color:var(--teal); color:var(--teal); }
+  .row-actions button.wa:hover{ background:var(--teal); color:#fff; }
+
+  .muted{ color:var(--ink-soft); }
+  .empty-state{ padding:60px 20px; text-align:center; color:var(--ink-soft); }
+
+  .modal-bg{
+    position:fixed; inset:0; background:rgba(23,35,31,0.45); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50;
+  }
+  .modal{ background:#fff; border:1px solid var(--line-strong); padding:24px; width:100%; max-width:420px; }
+  .modal h3{ margin:0 0 16px; font-size:17px; }
+  .modal .form-buttons{ margin-top:18px; }
+
+  footer.note{ margin-top:26px; font-size:12.5px; color:var(--ink-soft); border-top:1px solid var(--line); padding-top:16px; }
+
+  @media (max-width:640px){
+    .grid2{ grid-template-columns:1fr; }
+    .ledger-strip{ grid-template-columns:1fr; }
+    .ledger-item{ border-left:none; border-top:1px solid var(--line); }
+    .ledger-item:first-child{ border-top:none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="masthead">
+    <h1>Controle de Cobranças</h1>
+    <p>Cadastre clientes, parcelas e juros por atraso. Status, valores e mensagens de cobrança são calculados automaticamente.</p>
+  </header>
+
+  <section class="ledger-strip" id="summaryStrip"></section>
+
+  <div class="toolbar">
+    <div class="filters" id="filterBar">
+      <button data-filter="todos" class="active">Todos</button>
+      <button data-filter="vencido"><span class="dot brick"></span>Vencido</button>
+      <button data-filter="a-vencer"><span class="dot amber"></span>A vencer</button>
+      <button data-filter="pago"><span class="dot green"></span>Pago</button>
+    </div>
+    <div class="actions-right">
+      <button class="ghost" id="btnExport">Exportar Excel</button>
+      <button class="primary" id="btnNovo">+ Novo cliente</button>
+    </div>
+  </div>
+
+  <form id="clientForm" hidden>
+    <h2 id="formTitle">Novo cliente</h2>
+    <div class="grid2">
+      <div class="field">
+        <label>Nome do cliente</label>
+        <input type="text" id="f_nome" required placeholder="Ex: João Silva">
+      </div>
+      <div class="field">
+        <label>WhatsApp (com DDD)</label>
+        <input type="text" id="f_telefone" required placeholder="Ex: 61 91234-5678">
+      </div>
+    </div>
+    <div class="field">
+      <label>Serviço / obra</label>
+      <input type="text" id="f_servico" required placeholder="Ex: Instalação elétrica">
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Juros por atraso (%)</label>
+        <input type="number" id="f_juros" step="0.01" min="0" value="0" required>
+      </div>
+      <div class="field">
+        <label>Cobrar juros por</label>
+        <select id="f_unidade">
+          <option value="dia">Dia</option>
+          <option value="semana">Semana</option>
+          <option value="mes">Mês</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="parcelasWrap">
+      <label style="display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:8px;">Parcelas</label>
+      <div id="parcelasList"></div>
+      <button type="button" class="add-parcela" id="btnAddParcela">+ adicionar parcela</button>
+    </div>
+
+    <div class="field" style="margin-top:14px;">
+      <label>Observações</label>
+      <textarea id="f_obs" placeholder="Anotações sobre esse cliente"></textarea>
+    </div>
+
+    <div class="form-buttons">
+      <button type="submit" class="primary" id="btnSalvarCliente">Salvar cliente</button>
+      <button type="button" class="ghost" id="btnCancelar">Cancelar</button>
+    </div>
+  </form>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Vencimento</th>
+          <th>Parcela</th>
+          <th>Valor</th>
+          <th>Pago</th>
+          <th>Restante + juros</th>
+          <th>Atraso</th>
+          <th>Status</th>
+          <th>Último contato</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaBody"></tbody>
+    </table>
+    <div class="empty-state" id="emptyState" hidden>Nenhum cliente cadastrado ainda. Clique em "+ Novo cliente" para começar.</div>
+  </div>
+
+  <footer class="note">
+    <span id="saveStatus">Os dados são salvos automaticamente neste navegador.</span>
+    · <button id="btnResetDados" style="background:none;border:none;color:var(--brick);text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">apagar dados salvos e recomeçar</button>
+  </footer>
+
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+// ---------- estado ----------
+const STORAGE_KEY = 'controle-cobrancas:dados';
+
+const clientesDemo = [
+  {
+    id: 'c1', nome: 'João Silva', telefone: '5561912340001', servico: 'Instalação elétrica',
+    jurosPercent: 2, jurosUnidade: 'dia', obs: '', ultimoContato: '',
+    parcelas: [
+      { id:'p1', numero:1, totalParcelas:1, valor:1500, vencimento:'2026-09-15', valorPago:0, dataPagamento:null }
+    ]
+  },
+  {
+    id: 'c2', nome: 'Carlos Mendes', telefone: '5561912340002', servico: 'Manutenção de ar-condicionado',
+    jurosPercent: 0, jurosUnidade: 'dia', obs: '', ultimoContato: '2026-09-10',
+    parcelas: [
+      { id:'p2', numero:1, totalParcelas:1, valor:800, vencimento:'2026-09-10', valorPago:800, dataPagamento:'2026-09-10' }
+    ]
+  },
+  {
+    id: 'c3', nome: 'Pedro Alves', telefone: '5561912340003', servico: 'Reforma da cozinha',
+    jurosPercent: 5, jurosUnidade: 'semana', obs: '', ultimoContato: '',
+    parcelas: [
+      { id:'p3', numero:1, totalParcelas:2, valor:1150, vencimento:'2026-09-20', valorPago:0, dataPagamento:null },
+      { id:'p4', numero:2, totalParcelas:2, valor:1150, vencimento:'2026-10-20', valorPago:0, dataPagamento:null }
+    ]
+  }
+];
+
+let clientes = clientesDemo;
+let editingClientId = null;
+let currentFilter = 'todos';
+
+// ---------- utils ----------
+function uid(){ return 'id' + Math.random().toString(36).slice(2,10); }
+function round2(n){ return Math.round(n * 100) / 100; }
+function formatBRL(n){
+  return 'R$ ' + (n<0?0:n).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function formatDateBR(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function hojeZero(){
+  const h = new Date();
+  return new Date(h.getFullYear(), h.getMonth(), h.getDate());
+}
+function isoToDateZero(iso){
+  const [y,m,d] = iso.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+// ---------- persistência (localStorage) ----------
+function salvarLocal(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clientes));
+    const status = document.getElementById('saveStatus');
+    if(status) status.textContent = 'Salvo neste navegador às ' + new Date().toLocaleTimeString('pt-BR');
+  }catch(err){
+    console.warn('Não foi possível salvar localmente:', err);
+    const status = document.getElementById('saveStatus');
+    if(status) status.textContent = 'Não foi possível salvar automaticamente neste navegador.';
+  }
+}
+function carregarLocal(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const dados = JSON.parse(raw);
+      if(Array.isArray(dados)){ clientes = dados; return true; }
+    }
+  }catch(err){
+    console.warn('Não foi possível carregar dados salvos:', err);
+  }
+  return false;
+}
+
+// ---------- cálculo de juros/status ----------
+function calcPeriodosAtraso(vencZero, hoje, unidade){
+  const msDay = 86400000;
+  const diffDays = Math.floor((hoje - vencZero) / msDay);
+  if(diffDays <= 0) return 0;
+  if(unidade === 'dia') return diffDays;
+  if(unidade === 'semana') return Math.floor(diffDays / 7);
+  if(unidade === 'mes'){
+    let months = (hoje.getFullYear()-vencZero.getFullYear())*12 + (hoje.getMonth()-vencZero.getMonth());
+    if(hoje.getDate() < vencZero.getDate()) months--;
+    return Math.max(0, months);
+  }
+  return 0;
+}
+
+function calcParcela(cliente, parcela){
+  const hoje = hojeZero();
+  const vencZero = isoToDateZero(parcela.vencimento);
+  const restante = round2(parcela.valor - (parcela.valorPago||0));
+  let status, periodos = 0, juros = 0;
+
+  if(restante <= 0.004){
+    status = 'pago';
+  } else if(vencZero >= hoje){
+    status = 'a-vencer';
+  } else {
+    status = 'vencido';
+    periodos = calcPeriodosAtraso(vencZero, hoje, cliente.jurosUnidade);
+    juros = round2(restante * (cliente.jurosPercent/100) * periodos);
+  }
+  const valorAtualizado = round2(restante + juros);
+  const diasAtraso = status === 'vencido' ? Math.floor((hoje - vencZero)/86400000) : 0;
+  return { restante, juros, status, periodos, valorAtualizado, diasAtraso };
+}
+
+// ---------- resumo ----------
+function renderSummary(){
+  let vencidoTotal=0, vencidoClientes=new Set();
+  let avencerTotal=0, avencerClientes=new Set();
+  let recebidoTotal=0;
+
+  clientes.forEach(c=>{
+    c.parcelas.forEach(p=>{
+      const calc = calcParcela(c,p);
+      recebidoTotal += (p.valorPago||0);
+      if(calc.status==='vencido'){ vencidoTotal += calc.valorAtualizado; vencidoClientes.add(c.id); }
+      if(calc.status==='a-vencer'){ avencerTotal += calc.valorAtualizado; avencerClientes.add(c.id); }
+    });
+  });
+
+  document.getElementById('summaryStrip').innerHTML = `
+    <div class="ledger-item">
+      <div class="label"><span class="dot brick"></span>Vencido</div>
+      <div class="value num">${formatBRL(vencidoTotal)}</div>
+      <div class="count">${vencidoClientes.size} cliente(s)</div>
+    </div>
+    <div class="ledger-item">
+      <div class="label"><span class="dot amber"></span>A vencer</div>
+      <div class="value num">${formatBRL(avencerTotal)}</div>
+      <div class="count">${avencerClientes.size} cliente(s)</div>
+    </div>
+    <div class="ledger-item">
+      <div class="label"><span class="dot green"></span>Recebido</div>
+      <div class="value num">${formatBRL(recebidoTotal)}</div>
+      <div class="count">total já pago</div>
+    </div>
+  `;
+}
+
+// ---------- tabela ----------
+function unidadeLabel(u){ return u==='dia' ? 'dia' : (u==='semana' ? 'semana' : 'mês'); }
+
+function renderTabela(){
+  const body = document.getElementById('tabelaBody');
+  const empty = document.getElementById('emptyState');
+  body.innerHTML = '';
+
+  if(clientes.length===0){
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+
+  clientes.forEach(c=>{
+    const visiveis = c.parcelas.filter(p=>{
+      if(currentFilter==='todos') return true;
+      return calcParcela(c,p).status === currentFilter;
+    });
+    if(visiveis.length===0) return;
+
+    const trCliente = document.createElement('tr');
+    trCliente.className = 'client-row';
+    trCliente.innerHTML = `
+      <td colspan="9">
+        ${c.nome}
+        <span class="client-actions">
+          <button data-act="editar-cliente" data-id="${c.id}">editar cliente</button>
+          <button data-act="excluir-cliente" data-id="${c.id}">excluir</button>
+        </span>
+        <span class="client-meta">${c.servico} · ${c.telefone} ${c.jurosPercent>0 ? `· juros ${c.jurosPercent}% por ${unidadeLabel(c.jurosUnidade)} de atraso` : '· sem juros por atraso'}</span>
+      </td>`;
+    body.appendChild(trCliente);
+
+    visiveis.forEach(p=>{
+      const calc = calcParcela(c,p);
+      const tr = document.createElement('tr');
+      tr.className = 'parcela-line';
+
+      const badgeMap = {
+        'pago': ['pago','Pago'],
+        'a-vencer': ['a-vencer','A vencer'],
+        'vencido': ['vencido','Vencido']
+      };
+      const [badgeClass, badgeLabel] = badgeMap[calc.status];
+
+      const atrasoTxt = calc.status==='vencido'
+        ? `${calc.diasAtraso}d <span class="muted">(${calc.periodos} ${unidadeLabel(c.jurosUnidade)}${calc.periodos===1?'':'s'} c/ juros)</span>`
+        : '—';
+
+      tr.innerHTML = `
+        <td class="num">${formatDateBR(p.vencimento)}</td>
+        <td>${p.numero}/${p.totalParcelas}</td>
+        <td class="num">${formatBRL(p.valor)}</td>
+        <td class="num">${formatBRL(p.valorPago||0)}</td>
+        <td class="num">${formatBRL(calc.valorAtualizado)}${calc.juros>0 ? `<br><span class="muted" style="font-size:11.5px;">+ ${formatBRL(calc.juros)} juros</span>` : ''}</td>
+        <td class="num">${atrasoTxt}</td>
+        <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+        <td>${c.ultimoContato ? formatDateBR(c.ultimoContato) : '<span class="muted">—</span>'}</td>
+        <td>
+          <div class="row-actions">
+            <button class="wa" data-act="whatsapp" data-cid="${c.id}" data-pid="${p.id}">WhatsApp</button>
+            ${(p.valorPago||0) > 0
+              ? `<button data-act="cancelar-pagamento" data-cid="${c.id}" data-pid="${p.id}">Cancelar pgto.</button>`
+              : `<button data-act="pagar" data-cid="${c.id}" data-pid="${p.id}">Registrar pgto.</button>`
+            }
+            <button data-act="editar-parcela" data-cid="${c.id}" data-pid="${p.id}">Editar</button>
+          </div>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+  });
+}
+
+function renderAll(){ renderSummary(); renderTabela(); }
+
+// ---------- WhatsApp ----------
+function abrirWhatsapp(cliente, parcela){
+  const calc = calcParcela(cliente, parcela);
+  const msg = `Olá, ${cliente.nome}. Tudo bem? Estou entrando em contato sobre o pagamento de ${cliente.servico}, no valor de ${formatBRL(calc.valorAtualizado)}, com vencimento em ${formatDateBR(parcela.vencimento)}. Poderia verificar, por favor?`;
+  let digits = cliente.telefone.replace(/\D/g,'');
+  if(!digits.startsWith('55')) digits = '55' + digits;
+  window.open(`https://wa.me/${digits}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ---------- formulário: cliente + parcelas ----------
+const form = document.getElementById('clientForm');
+const parcelasList = document.getElementById('parcelasList');
+
+function novaLinhaParcela(numero, totalParcelas, valor='', vencimento=''){
+  const row = document.createElement('div');
+  row.className = 'parcela-row';
+  row.innerHTML = `
+    <div class="field"><label>Nº</label><input type="text" class="p-numero num" value="${numero}" readonly></div>
+    <div class="field"><label>Valor (R$)</label><input type="number" step="0.01" min="0" class="p-valor" value="${valor}" required></div>
+    <div class="field"><label>Vencimento</label><input type="date" class="p-vencimento" value="${vencimento}" required></div>
+    <button type="button" class="rm-parcela" title="remover parcela">×</button>
+  `;
+  row.querySelector('.rm-parcela').addEventListener('click', ()=>{
+    row.remove();
+    renumerarParcelas();
+  });
+  return row;
+}
+function renumerarParcelas(){
+  const rows = parcelasList.querySelectorAll('.parcela-row');
+  rows.forEach((row,i)=>{
+    row.querySelector('.p-numero').value = i+1;
+    row.querySelectorAll('.p-numero').forEach(()=>{});
+  });
+  const total = rows.length;
+  rows.forEach(row=>{ row.dataset.total = total; });
+}
+
+document.getElementById('btnAddParcela').addEventListener('click', ()=>{
+  const row = novaLinhaParcela(parcelasList.children.length+1, parcelasList.children.length+1);
+  parcelasList.appendChild(row);
+  renumerarParcelas();
+});
+
+function abrirFormNovo(){
+  editingClientId = null;
+  document.getElementById('formTitle').textContent = 'Novo cliente';
+  document.getElementById('btnSalvarCliente').textContent = 'Salvar cliente';
+  form.reset();
+  parcelasList.innerHTML = '';
+  parcelasList.appendChild(novaLinhaParcela(1,1));
+  form.hidden = false;
+  form.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function abrirFormEdicao(clienteId){
+  const c = clientes.find(x=>x.id===clienteId);
+  if(!c) return;
+  editingClientId = clienteId;
+  document.getElementById('formTitle').textContent = 'Editar cliente';
+  document.getElementById('btnSalvarCliente').textContent = 'Salvar alterações';
+  document.getElementById('f_nome').value = c.nome;
+  document.getElementById('f_telefone').value = c.telefone;
+  document.getElementById('f_servico').value = c.servico;
+  document.getElementById('f_juros').value = c.jurosPercent;
+  document.getElementById('f_unidade').value = c.jurosUnidade;
+  document.getElementById('f_obs').value = c.obs || '';
+  parcelasList.innerHTML = '';
+  c.parcelas.forEach((p,i)=>{
+    parcelasList.appendChild(novaLinhaParcela(i+1, c.parcelas.length, p.valor, p.vencimento));
+  });
+  form.hidden = false;
+  form.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+document.getElementById('btnNovo').addEventListener('click', abrirFormNovo);
+document.getElementById('btnCancelar').addEventListener('click', ()=>{ form.hidden = true; });
+
+form.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const nome = document.getElementById('f_nome').value.trim();
+  const telefone = document.getElementById('f_telefone').value.trim();
+  const servico = document.getElementById('f_servico').value.trim();
+  const jurosPercent = parseFloat(document.getElementById('f_juros').value) || 0;
+  const jurosUnidade = document.getElementById('f_unidade').value;
+  const obs = document.getElementById('f_obs').value.trim();
+
+  const parcelaRows = [...parcelasList.querySelectorAll('.parcela-row')];
+  if(parcelaRows.length===0){ alert('Adicione pelo menos uma parcela.'); return; }
+
+  let parcelasAntigas = [];
+  if(editingClientId){
+    parcelasAntigas = clientes.find(c=>c.id===editingClientId).parcelas;
+  }
+
+  const parcelas = parcelaRows.map((row,i)=>{
+    const valor = parseFloat(row.querySelector('.p-valor').value);
+    const vencimento = row.querySelector('.p-vencimento').value;
+    const antiga = parcelasAntigas[i];
+    return {
+      id: antiga ? antiga.id : uid(),
+      numero: i+1,
+      totalParcelas: parcelaRows.length,
+      valor: valor,
+      vencimento: vencimento,
+      valorPago: antiga ? antiga.valorPago : 0,
+      dataPagamento: antiga ? antiga.dataPagamento : null
+    };
+  });
+
+  if(editingClientId){
+    const c = clientes.find(x=>x.id===editingClientId);
+    Object.assign(c, {nome, telefone, servico, jurosPercent, jurosUnidade, obs, parcelas});
+  } else {
+    clientes.push({ id: uid(), nome, telefone, servico, jurosPercent, jurosUnidade, obs, ultimoContato:'', parcelas });
+  }
+
+  form.hidden = true;
+  salvarLocal();
+  renderAll();
+});
+
+// ---------- ações da tabela ----------
+document.getElementById('tabelaBody').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-act]');
+  if(!btn) return;
+  const act = btn.dataset.act;
+
+  if(act==='editar-cliente'){ abrirFormEdicao(btn.dataset.id); return; }
+
+  if(act==='excluir-cliente'){
+    if(confirm('Excluir este cliente e todas as suas parcelas?')){
+      clientes = clientes.filter(c=>c.id!==btn.dataset.id);
+      salvarLocal();
+      renderAll();
+    }
+    return;
+  }
+
+  const c = clientes.find(x=>x.id===btn.dataset.cid);
+  const p = c ? c.parcelas.find(x=>x.id===btn.dataset.pid) : null;
+  if(!c || !p) return;
+
+  if(act==='whatsapp'){
+    abrirWhatsapp(c,p);
+    c.ultimoContato = new Date().toISOString().slice(0,10);
+    salvarLocal();
+    renderAll();
+  }
+  if(act==='pagar'){
+    const calc = calcParcela(c,p);
+    p.valorPago = p.valor + calc.juros;
+    p.dataPagamento = new Date().toISOString().slice(0,10);
+    salvarLocal();
+    renderAll();
+  }
+  if(act==='cancelar-pagamento'){
+    if(confirm(`Cancelar o pagamento registrado da parcela ${p.numero}/${p.totalParcelas} de ${c.nome}?`)){
+      p.valorPago = 0;
+      p.dataPagamento = null;
+      salvarLocal();
+      renderAll();
+    }
+  }
+  if(act==='editar-parcela'){
+    abrirModalParcela(c,p);
+  }
+});
+
+// ---------- modal de edição de parcela ----------
+function abrirModalParcela(cliente, parcela){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal">
+        <h3>Editar parcela — ${cliente.nome}</h3>
+        <div class="field">
+          <label>Valor pago (R$)</label>
+          <input type="number" step="0.01" min="0" id="m_valorPago" value="${parcela.valorPago||0}">
+        </div>
+        <div class="field">
+          <label>Data do último contato</label>
+          <input type="date" id="m_ultimoContato" value="${cliente.ultimoContato||''}">
+        </div>
+        <div class="field">
+          <label>Observações do cliente</label>
+          <textarea id="m_obs">${cliente.obs||''}</textarea>
+        </div>
+        <div class="form-buttons">
+          <button class="primary" id="m_salvar">Salvar</button>
+          <button class="ghost" id="m_cancelar">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('m_cancelar').addEventListener('click', ()=>{ root.innerHTML=''; });
+  document.getElementById('m_salvar').addEventListener('click', ()=>{
+    parcela.valorPago = parseFloat(document.getElementById('m_valorPago').value) || 0;
+    cliente.ultimoContato = document.getElementById('m_ultimoContato').value;
+    cliente.obs = document.getElementById('m_obs').value;
+    root.innerHTML = '';
+    salvarLocal();
+    renderAll();
+  });
+}
+
+// ---------- filtros ----------
+document.getElementById('filterBar').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-filter]');
+  if(!btn) return;
+  currentFilter = btn.dataset.filter;
+  [...document.getElementById('filterBar').children].forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTabela();
+});
+
+// ---------- exportar excel ----------
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const linhas = [];
+  clientes.forEach(c=>{
+    c.parcelas.forEach(p=>{
+      const calc = calcParcela(c,p);
+      linhas.push({
+        'Cliente': c.nome,
+        'WhatsApp': c.telefone,
+        'Serviço/Obra': c.servico,
+        'Parcela': `${p.numero}/${p.totalParcelas}`,
+        'Valor da parcela': p.valor,
+        'Valor pago': p.valorPago||0,
+        'Vencimento': formatDateBR(p.vencimento),
+        'Juros (%)': c.jurosPercent,
+        'Cobrado por': unidadeLabel(c.jurosUnidade),
+        'Períodos em atraso': calc.periodos,
+        'Juros acumulado (R$)': calc.juros,
+        'Valor atualizado': calc.valorAtualizado,
+        'Status': calc.status==='pago'?'Pago':(calc.status==='a-vencer'?'A vencer':'Vencido'),
+        'Dias em atraso': calc.diasAtraso,
+        'Último contato': c.ultimoContato ? formatDateBR(c.ultimoContato) : '',
+        'Observações': c.obs || ''
+      });
+    });
+  });
+  const ws = XLSX.utils.json_to_sheet(linhas);
+  ws['!cols'] = Object.keys(linhas[0]||{}).map(()=>({wch:18}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Cobranças');
+  XLSX.writeFile(wb, 'controle-cobrancas.xlsx');
+});
+
+// ---------- reset ----------
+document.getElementById('btnResetDados').addEventListener('click', ()=>{
+  if(confirm('Isso vai apagar todos os dados salvos neste navegador e voltar para os clientes de exemplo. Continuar?')){
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(err){}
+    clientes = clientesDemo;
+    salvarLocal();
+    renderAll();
+  }
+});
+
+// ---------- start ----------
+carregarLocal();
+renderAll();
+</script>
+</body>
+</html>
